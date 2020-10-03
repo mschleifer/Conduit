@@ -7,8 +7,14 @@ namespace Conduit
 {
     /// <summary>
     /// Used with an EditForm or EditContext to add errors returned from the Conduit API to the ValidationSummary. Based
-    /// on Based on https://docs.microsoft.com/en-us/aspnet/core/blazor/forms-validation?view=aspnetcore-3.1#validator-components.
+    /// on https://docs.microsoft.com/en-us/aspnet/core/blazor/forms-validation?view=aspnetcore-3.1#validator-components.
     /// </summary>
+    /// <remarks> 
+    /// This is an example of a class-only Blazor component. There is no corresponding .razor file. The 
+    /// <ServerValidator/> tag will be nested inside an <EditForm>/<EditContext> to obtain the CascadingParameter, but
+    /// the <ServerValidator/> itself renders no HTML. We could override BuildrenderTree() to render HTML without 
+    /// creating a .razor file, but I HIGHLY recommend against it unless you have a good reason.
+    /// </remarks>
     public class ServerValidator : ComponentBase
     {
         private ValidationMessageStore messageStore;
