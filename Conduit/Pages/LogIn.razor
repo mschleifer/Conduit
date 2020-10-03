@@ -1,0 +1,67 @@
+﻿@page "/Login"
+@inject PublicClient MyClient
+@inject NavigationManager MyNavigationManager
+
+<div class="auth-page">
+    <div class="container page">
+        <div class="row">
+
+            <div class="col-md-6 offset-md-3 col-xs-12">
+                <h1 class="text-xs-center">Sign In</h1>
+                <p class="text-xs-center">
+                    <a href="/Register">Need an account?</a>
+                </p>
+
+                <EditForm Model="@UserLoginModel" OnValidSubmit="@LoginUser">
+                    <div class="error-messages">
+                        <ValidationSummary />
+                    </div>
+
+                    <fieldset class="form-group">
+                        <InputText @bind-Value="UserLoginModel.Email" class="form-control form-control-lg" type="text" placeholder="Email" />
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <InputText @bind-Value="UserLoginModel.Password" class="form-control form-control-lg" type="password" placeholder="Password" />
+                    </fieldset>
+                    <button type="submit" class="btn btn-lg btn-primary pull-xs-right" disabled="@(IsSubmitting)">
+                        Sign in
+                    </button>
+
+                    <DataAnnotationsValidator />
+                    <ServerValidator @ref="serverValidator" />
+                </EditForm>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    bool IsSubmitting = false;
+    Models.Login UserLoginModel = new Models.Login();
+    private ServerValidator serverValidator;
+
+    async Task LoginUser()
+    {
+        serverValidator.ClearErrors();
+
+        IsSubmitting = true;
+
+        var loginResult = await MyClient.Login(UserLoginModel);
+
+        IsSubmitting = false;
+
+        if (loginResult.Success)
+        {
+            MyNavigationManager.NavigateTo($"/");
+        }
+        else if(loginResult.Errors?.Any() ?? false)
+        {
+            serverValidator.DisplayErrors(loginResult.Errors);
+        }
+        else
+        {
+            serverValidator.DisplayError(string.Empty, "Your request could not be processed");
+        }
+    }
+}

@@ -1,0 +1,73 @@
+﻿@page "/Register"
+@inject PublicClient MyClient
+@inject NavigationManager MyNavigationManager
+@inject AuthService MyAuthService
+
+<div class="auth-page">
+    <div class="container page">
+        <div class="row">
+
+            <div class="col-md-6 offset-md-3 col-xs-12">
+                <h1 class="text-xs-center">Sign Up</h1>
+                <p class="text-xs-center">
+                    <a href="/Login">Have an account?</a>
+                </p>
+
+                <EditForm Model="@UserRegisterModel" OnValidSubmit="@RegisterUser">
+                    <div class="error-messages">
+                        <ValidationSummary />
+                    </div>
+
+                    <fieldset class="form-group">
+                        <InputText @bind-Value="UserRegisterModel.Username" type="text" class="form-control form-control-lg" placeholder="Username" />
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <InputText @bind-Value="UserRegisterModel.Email" class="form-control form-control-lg" type="text" placeholder="Email" />
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <InputText @bind-Value="UserRegisterModel.Password" class="form-control form-control-lg" type="password" placeholder="Password" />
+                    </fieldset>
+                    <button type="submit" class="btn btn-lg btn-primary pull-xs-right" disabled="@(IsSubmitting)">
+                        Sign up
+                    </button>
+
+                    <DataAnnotationsValidator />
+                    <ServerValidator @ref="serverValidator" />
+                </EditForm>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    bool IsSubmitting = false;
+    Models.Register UserRegisterModel = new Models.Register();
+    private ServerValidator serverValidator;
+
+
+    async Task RegisterUser()
+    {
+        serverValidator.ClearErrors();
+
+        IsSubmitting = true;
+
+        var registerResult = await MyClient.RegisterUser(UserRegisterModel);
+
+        IsSubmitting = false;
+
+        if (registerResult.Success)
+        {
+            MyAuthService.LogUserIn(registerResult.ReponseObject);
+            MyNavigationManager.NavigateTo($"/");
+        }
+        else if (registerResult.Errors?.Any() ?? false)
+        {
+            serverValidator.DisplayErrors(registerResult.Errors);
+        }
+        else
+        {
+            serverValidator.DisplayError(string.Empty, "Your request could not be processed");
+        }
+    }
+}

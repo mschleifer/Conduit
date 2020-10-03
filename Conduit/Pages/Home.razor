@@ -1,0 +1,116 @@
+﻿@page "/"
+@inject PublicClient PubClient
+
+<div class="home-page">
+
+    <div class="banner">
+        <div class="container">
+            <h1 class="logo-font">conduit</h1>
+            <p>A place to share your knowledge.</p>
+        </div>
+    </div>
+
+    <div class="container page">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="feed-toggle">
+                    <ul class="nav nav-pills outline-active">
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="">Your Feed</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="">Global Feed</a>
+                        </li>
+                    </ul>
+                </div>
+
+                @if (articles != null)
+                {
+                    @foreach (var article in articles)
+                    {
+                        <div class="article-preview">
+                            <div class="article-meta">
+                                <a href="profile.html"><img src="@article.Author.Image" /></a>
+                                <div class="info">
+                                    <a href="" class="author">@article.Author.UserName</a>
+                                    <span class="date">@article.CreatedAt.ToString("MMMM d, yyyy")</span>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm pull-xs-right">
+                                    <i class="ion-heart"></i> @article.FavoritesCount
+                                </button>
+                            </div>
+                            <a href="" class="preview-link">
+                                <h1>@article.Title</h1>
+                                <p>@article.Description</p>
+                                <span>Read more...</span>
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <text>Loading articles...</text>
+                }
+            </div>
+
+            <div class="col-md-3">
+                <div class="sidebar">
+                    <p>Popular Tags</p>
+
+                    <div class="tag-list">
+                        @if (popularTags == null)
+                        {
+                            <text>Loading tags...</text>
+                        }
+                        else
+                        {
+                            foreach (var tag in popularTags)
+                            {
+                                <a href="" class="tag-pill tag-default">@tag</a>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    List<Conduit.Models.Article> articles;
+    List<string> popularTags;
+
+    protected override async Task OnInitializedAsync()
+    {
+        articles = await PubClient.GetArticles();
+        popularTags = await PubClient.GetTags();
+    }
+
+    //@using System.Security.Claims
+    //@using Microsoft.AspNetCore.Components.Authorization
+    //@inject AuthenticationStateProvider AuthenticationStateProvider
+
+    //var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    //var user = authState.User;
+
+    //if (user.Identity.IsAuthenticated)
+    //{
+    //    _authMessage = $"{user.Identity.Name} is authenticated.";
+    //    _claims = user.Claims;
+    //    _surnameMessage =
+    //        $"Surname: {user.FindFirst(c => c.Type == ClaimTypes.Surname)?.Value}";
+    //}
+    //else
+    //{
+    //    _authMessage = "The user is NOT authenticated.";
+    //}
+
+    //async Task RemovePizza(Pizza configuredPizza)
+    //{
+    //    if (await JSInterop.Confirm($"Remove {configuredPizza.Special.Name} pizza from your order?"))
+    //    {
+    //        OrderState.RemoveConfiguredPizza(configuredPizza);
+    //    }
+    //}
+}

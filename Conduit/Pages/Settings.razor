@@ -1,0 +1,97 @@
+﻿@page "/Settings"
+@inject AuthService MyAuthService
+@inject NavigationManager MyNavigationManager
+@inject ConduitClient MyHttpClient
+
+<div class="settings-page">
+    <div class="container page">
+        <div class="row">
+
+            <div class="col-md-6 offset-md-3 col-xs-12">
+                <h1 class="text-xs-center">Your Settings</h1>
+
+                <EditForm Model="@settingsInfo" OnValidSubmit="@UpdateUserInfo">
+                    <div class="error-messages">
+                        <ValidationSummary />
+                    </div>
+                    <fieldset>
+                        <fieldset class="form-group">
+                            <InputText @bind-Value="settingsInfo.Image" class="form-control" type="text" placeholder="URL of profile picture" />
+                        </fieldset>
+                        <fieldset class="form-group">
+                            <InputText @bind-Value="settingsInfo.Username" class="form-control form-control-lg" type="text" placeholder="Your Name" />
+                        </fieldset>
+                        <fieldset class="form-group">
+                            <InputTextArea @bind-Value="settingsInfo.Bio" class="form-control form-control-lg" rows="8" placeholder="Short bio about you" />
+                        </fieldset>
+                        <fieldset class="form-group">
+                            <InputText @bind-Value="settingsInfo.Email" class="form-control form-control-lg" type="text" placeholder="Email" />
+                        </fieldset>
+                        <fieldset class="form-group">
+                            <InputText @bind-Value="settingsInfo.Password" class="form-control form-control-lg" type="password" placeholder="New Password" />
+                        </fieldset>
+                        <button type="submit" class="btn btn-lg btn-primary pull-xs-right" disabled="@(IsSubmitting)">
+                            Update Settings
+                        </button>
+                    </fieldset>
+
+                    <DataAnnotationsValidator />
+                    <ServerValidator @ref="serverValidator" />
+                </EditForm>
+
+                <hr />
+                <button class="btn btn-outline-danger" @onclick="LogoutUser">Or click here to logout</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+
+    bool IsSubmitting = false;
+    Conduit.Models.Settings settingsInfo = new Models.Settings();
+    private ServerValidator serverValidator;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userInfo = await MyHttpClient.GetCurrentUser();
+        settingsInfo.Image = userInfo.Image;
+        settingsInfo.Username = userInfo.Username;
+        settingsInfo.Bio = userInfo.Bio;
+        settingsInfo.Email = userInfo.Email;
+
+    }
+
+    async Task LogoutUser()
+    {
+
+        await MyAuthService.LogUserOut();
+        MyNavigationManager.NavigateTo($"/");
+    }
+
+    async Task UpdateUserInfo()
+    {
+        serverValidator.ClearErrors();
+
+        IsSubmitting = true;
+
+        var updateResult = await MyHttpClient.UpdateUser(settingsInfo);
+
+        IsSubmitting = false;
+
+        if (updateResult.Success)
+        {
+            MyNavigationManager.NavigateTo($"/");
+        }
+        else if (updateResult.Errors?.Any() ?? false)
+        {
+            serverValidator.DisplayErrors(updateResult.Errors);
+        }
+        else
+        {
+            serverValidator.DisplayError(string.Empty, "Your request could not be processed");
+        }
+    }
+}

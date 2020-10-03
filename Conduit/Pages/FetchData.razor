@@ -1,0 +1,44 @@
+﻿@page "/fetchdata"
+@inject PublicClient MyClient
+
+<h1>Articles</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (articleList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Created</th>
+                <th>Favorite Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var article in articleList)
+            {
+                <tr>
+                    <td>@article.Title</td>
+                    <td>@article.Author.UserName</td>
+                    <td>@article.CreatedAt</td>
+                    <td>@article.FavoritesCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Conduit.Models.Article> articleList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        articleList = await MyClient.GetArticles();
+    }
+}
