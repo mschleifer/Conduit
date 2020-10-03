@@ -32,7 +32,7 @@
                     </button>
 
                     <DataAnnotationsValidator />
-                    <ServerValidator @ref="serverValidator" />
+                    <ServerValidator @ref="ServerValidator" />
                 </EditForm>
             </div>
 
@@ -43,12 +43,12 @@
 @code {
     bool IsSubmitting = false;
     Models.Register UserRegisterModel = new Models.Register();
-    private ServerValidator serverValidator;
+    private ServerValidator ServerValidator;
 
 
     async Task RegisterUser()
     {
-        serverValidator.ClearErrors();
+        ServerValidator.ClearErrors();
 
         IsSubmitting = true;
 
@@ -63,11 +63,11 @@
         }
         else if (registerResult.Errors?.Any() ?? false)
         {
-            serverValidator.DisplayErrors(registerResult.Errors);
+            ServerValidator.DisplayErrors(registerResult.Errors);
         }
         else
         {
-            serverValidator.DisplayError(string.Empty, "Your request could not be processed");
+            ServerValidator.DisplayError(string.Empty, "Your request could not be processed");
         }
     }
 }

@@ -28,7 +28,7 @@
                     </button>
 
                     <DataAnnotationsValidator />
-                    <ServerValidator @ref="serverValidator" />
+                    <ServerValidator @ref="ServerValidator" />
                 </EditForm>
             </div>
 
@@ -39,11 +39,11 @@
 @code {
     bool IsSubmitting = false;
     Models.Login UserLoginModel = new Models.Login();
-    private ServerValidator serverValidator;
+    private ServerValidator ServerValidator;
 
     async Task LoginUser()
     {
-        serverValidator.ClearErrors();
+        ServerValidator.ClearErrors();
 
         IsSubmitting = true;
 
@@ -57,11 +57,11 @@
         }
         else if(loginResult.Errors?.Any() ?? false)
         {
-            serverValidator.DisplayErrors(loginResult.Errors);
+            ServerValidator.DisplayErrors(loginResult.Errors);
         }
         else
         {
-            serverValidator.DisplayError(string.Empty, "Your request could not be processed");
+            ServerValidator.DisplayError(string.Empty, "Your request could not be processed");
         }
     }
 }

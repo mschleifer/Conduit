@@ -10,25 +10,25 @@
             <div class="col-md-6 offset-md-3 col-xs-12">
                 <h1 class="text-xs-center">Your Settings</h1>
 
-                <EditForm Model="@settingsInfo" OnValidSubmit="@UpdateUserInfo">
+                <EditForm Model="@SettingsInfo" OnValidSubmit="@UpdateUserInfo">
                     <div class="error-messages">
                         <ValidationSummary />
                     </div>
                     <fieldset>
                         <fieldset class="form-group">
-                            <InputText @bind-Value="settingsInfo.Image" class="form-control" type="text" placeholder="URL of profile picture" />
+                            <InputText @bind-Value="SettingsInfo.Image" class="form-control" type="text" placeholder="URL of profile picture" />
                         </fieldset>
                         <fieldset class="form-group">
-                            <InputText @bind-Value="settingsInfo.Username" class="form-control form-control-lg" type="text" placeholder="Your Name" />
+                            <InputText @bind-Value="SettingsInfo.Username" class="form-control form-control-lg" type="text" placeholder="Your Name" />
                         </fieldset>
                         <fieldset class="form-group">
-                            <InputTextArea @bind-Value="settingsInfo.Bio" class="form-control form-control-lg" rows="8" placeholder="Short bio about you" />
+                            <InputTextArea @bind-Value="SettingsInfo.Bio" class="form-control form-control-lg" rows="8" placeholder="Short bio about you" />
                         </fieldset>
                         <fieldset class="form-group">
-                            <InputText @bind-Value="settingsInfo.Email" class="form-control form-control-lg" type="text" placeholder="Email" />
+                            <InputText @bind-Value="SettingsInfo.Email" class="form-control form-control-lg" type="text" placeholder="Email" />
                         </fieldset>
                         <fieldset class="form-group">
-                            <InputText @bind-Value="settingsInfo.Password" class="form-control form-control-lg" type="password" placeholder="New Password" />
+                            <InputText @bind-Value="SettingsInfo.Password" class="form-control form-control-lg" type="password" placeholder="New Password" />
                         </fieldset>
                         <button type="submit" class="btn btn-lg btn-primary pull-xs-right" disabled="@(IsSubmitting)">
                             Update Settings
@@ -36,7 +36,7 @@
                     </fieldset>
 
                     <DataAnnotationsValidator />
-                    <ServerValidator @ref="serverValidator" />
+                    <ServerValidator @ref="ServerValidator" />
                 </EditForm>
 
                 <hr />
@@ -50,18 +50,17 @@
 @code {
 
     bool IsSubmitting = false;
-    Conduit.Models.Settings settingsInfo = new Models.Settings();
-    private ServerValidator serverValidator;
+    Conduit.Models.Settings SettingsInfo = new Models.Settings();
+    private ServerValidator ServerValidator;
 
 
     protected override async Task OnInitializedAsync()
     {
         var userInfo = await MyHttpClient.GetCurrentUser();
-        settingsInfo.Image = userInfo.Image;
-        settingsInfo.Username = userInfo.Username;
-        settingsInfo.Bio = userInfo.Bio;
-        settingsInfo.Email = userInfo.Email;
-
+        SettingsInfo.Image = userInfo.Image;
+        SettingsInfo.Username = userInfo.Username;
+        SettingsInfo.Bio = userInfo.Bio;
+        SettingsInfo.Email = userInfo.Email;
     }
 
     async Task LogoutUser()
@@ -73,11 +72,11 @@
 
     async Task UpdateUserInfo()
     {
-        serverValidator.ClearErrors();
+        ServerValidator.ClearErrors();
 
         IsSubmitting = true;
 
-        var updateResult = await MyHttpClient.UpdateUser(settingsInfo);
+        var updateResult = await MyHttpClient.UpdateUser(SettingsInfo);
 
         IsSubmitting = false;
 
@@ -87,11 +86,11 @@
         }
         else if (updateResult.Errors?.Any() ?? false)
         {
-            serverValidator.DisplayErrors(updateResult.Errors);
+            ServerValidator.DisplayErrors(updateResult.Errors);
         }
         else
         {
-            serverValidator.DisplayError(string.Empty, "Your request could not be processed");
+            ServerValidator.DisplayError(string.Empty, "Your request could not be processed");
         }
     }
 }
