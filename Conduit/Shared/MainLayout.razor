@@ -4,8 +4,7 @@
         <a class="navbar-brand" href="">conduit</a>
         <ul class="nav navbar-nav pull-xs-right">
             <li class="nav-item">
-                <!-- Add "active" class when you're on that page" -->
-                <a class="nav-link active" href="">Home</a>
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
             </li>
             <AuthorizeView>
                 <Authorizing>
@@ -13,27 +12,27 @@
                 </Authorizing>
                 <Authorized>
                     <li class="nav-item">
-                        <a class="nav-link" href="">
+                        <NavLink class="nav-link" href="/editor">
                             <i class="ion-compose"></i>&nbsp;New Article
-                        </a>
+                        </NavLink>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/settings">
+                        <NavLink class="nav-link" href="/settings">
                             <i class="ion-gear-a"></i>&nbsp;Settings
-                        </a>
+                        </NavLink>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/@@@context.User.Identity.Name">
+                        <NavLink class="nav-link" href="@($"/@{context.User.Identity.Name}")">
                             <i class="ion-gear-a"></i>&nbsp;@context.User.Identity.Name
-                        </a>
+                        </NavLink>
                     </li>
                 </Authorized>
                 <NotAuthorized>
                     <li class="nav-item">
-                        <a class="nav-link" href="/login">Sign in</a>
+                        <NavLink class="nav-link" href="/login">Sign in</NavLink>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/register">Sign up</a>
+                        <NavLink class="nav-link" href="/register">Sign up</NavLink>
                     </li>
                 </NotAuthorized>
             </AuthorizeView>
