@@ -30,13 +30,13 @@ namespace Conduit
         }
 
         /// <summary>
-        /// Add the returned JWT to local storage, mark the user authenticated with the auth state provider, and add
-        /// the bearer header on our default HttpClient so that the JWT is sent with all requests.
+        /// Add the User's token (JWT) to local storage, mark the user authenticated with the auth state provider, and 
+        /// add the bearer header on our default HttpClient so that the JWT is sent with all requests.
         /// </summary>
         public async void LogUserIn(User userModel)
         {
             await _localStorage.SetItemAsync("authToken", userModel.Token);
-            ((ConduitAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(userModel.Email);
+            ((ConduitAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(userModel.Username);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", userModel.Token);
         }
 

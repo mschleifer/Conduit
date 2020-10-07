@@ -35,7 +35,6 @@ namespace Conduit
         /// (equivalent to saying that no user is logged in). Otherwise, set the JWT as the default auth header for HttpClient,
         /// extract the claims from the JWT, and return an AuthenticationState with those claims
         /// </summary>
-        /// <returns></returns>
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var savedToken = await _localStorage.GetItemAsync<string>("authToken");
@@ -51,13 +50,13 @@ namespace Conduit
         }
 
         /// <summary>
-        ///  Invokes NotifyAuthenticationStateChanged() method which fires an event that will update any
-        ///  CascadingAuthenticationState components with the new AuthenticationState
+        ///  Constructs a new ClaimsPrincipal and corresponding AuthenticationState. Invokes
+        ///  NotifyAuthenticationStateChanged() method which fires an event that will update any 
+        ///  CascadingAuthenticationState components with the new AuthenticationState.
         /// </summary>
-        /// <param name="email"></param>
-        public void MarkUserAsAuthenticated(string email)
+        public void MarkUserAsAuthenticated(string username)
         {
-            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, email) }, "apiauth"));
+            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, username) }, "apiauth"));
             var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
             NotifyAuthenticationStateChanged(authState);
         }
