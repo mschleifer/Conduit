@@ -30,19 +30,27 @@
                     {
                         <div class="article-preview">
                             <div class="article-meta">
-                                <a href="profile.html"><img src="@article.Author.Image" /></a>
+                                <a href="/@@@(article.Author.UserName)"><img src="@article.Author.Image" /></a>
                                 <div class="info">
-                                    <a href="" class="author">@article.Author.UserName</a>
+                                    <a href="/@@@(article.Author.UserName)" class="author">@article.Author.UserName</a>
                                     <span class="date">@article.CreatedAt.ToString("MMMM d, yyyy")</span>
                                 </div>
                                 <button class="btn btn-outline-primary btn-sm pull-xs-right">
                                     <i class="ion-heart"></i> @article.FavoritesCount
                                 </button>
                             </div>
-                            <a href="" class="preview-link">
+                            <a href="/article/@(article.Slug)" class="preview-link">
                                 <h1>@article.Title</h1>
                                 <p>@article.Description</p>
                                 <span>Read more...</span>
+                                <ul class="tag-list">
+                                    @foreach (var tag in article.TagList)
+                                    {
+                                        <li class="tag-default tag-pill tag-outline">
+                                            @tag
+                                        </li>
+                                    }
+                                </ul>
                             </a>
                         </div>
                     }
