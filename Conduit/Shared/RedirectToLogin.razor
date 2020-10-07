@@ -2,6 +2,7 @@
 @code {
     protected override void OnInitialized()
     {
-        Navigation.NavigateTo($"authentication/login?returnUrl={Navigation.Uri}");
+        // I'd go /login, but the spec seems to be go to home
+        Navigation.NavigateTo($"/");
     }
 }
