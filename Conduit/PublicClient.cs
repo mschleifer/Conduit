@@ -10,6 +10,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Conduit
 {
@@ -40,11 +41,64 @@ namespace Conduit
         public async Task<Article> GetArticle(string slug) =>
             await _httpClient.GetFromJsonAsync<Article>($"api/articles/:{slug}");
 
-        public async Task<List<Article>> GetArticles() =>
-            (await _httpClient.GetFromJsonAsync<ArticleList>("api/articles")).Articles;
+        public async Task<ConduitApiResponse<List<Article>>> GetArticles(string tag = null, string author = null, string favorited = null, int? limit = null, int? offset = null)
+        {
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            if (!string.IsNullOrEmpty(tag)) { query["tag"] = tag; }
+            if (!string.IsNullOrEmpty(author)) { query["author"] = author; }
+            if (!string.IsNullOrEmpty(favorited)) { query["favorited"] = favorited; }
+            if (limit != null) { query["limit"] = limit?.ToString(); }
+            if (offset != null) { query["offset"] = offset?.ToString(); }
 
-        public async Task<List<string>> GetTags() =>
-            (await _httpClient.GetFromJsonAsync<TagList>("api/tags")).Tags;
+            string queryString = $"?{query.ToString()}";
+
+            var response = await _httpClient.GetAsync($"api/articles{queryString}");
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<List<Article>> result;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                result = JsonSerializer.Deserialize<ConduitApiResponse<List<Article>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                result.Success = false;
+
+                return result;
+            }
+
+            // If successful, deserialize the response into a Profile object
+            // Ideally, we'd just use JsonSerializer.Deserialize on the reponse, but that doesn't work with our models, 
+            // so the JsonExtensions method below parses the response for us
+            var profileObject = JsonExtensions.SearchJsonRoot<List<Article>>(content, "articles");
+            result = new ConduitApiResponse<List<Article>> { Success = true, ReponseObject = profileObject };
+
+            return result;
+        }
+
+        public async Task<ConduitApiResponse<List<string>>> GetTags()
+        {
+            var response = await _httpClient.GetAsync("api/tags");
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<List<string>> result;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                result = JsonSerializer.Deserialize<ConduitApiResponse<List<string>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                result.Success = false;
+
+                return result;
+            }
+
+            // If successful, deserialize the response into a Profile object
+            // Ideally, we'd just use JsonSerializer.Deserialize on the reponse, but that doesn't work with our models, 
+            // so the JsonExtensions method below parses the response for us
+            var profileObject = JsonExtensions.SearchJsonRoot<List<string>>(content, "articles");
+            result = new ConduitApiResponse<List<string>> { Success = true, ReponseObject = profileObject };
+
+            return result;
+        }
 
         public async Task<ConduitApiResponse<User>> RegisterUser(Register registrationInfo)
         {
@@ -107,9 +161,5 @@ namespace Conduit
 
             return loginResult;
         }
-
-        public async Task<Profile> GetProfile(string username) =>
-            await _httpClient.GetFromJsonAsync<Profile>($"api/profiles/{username}");
-
     }
 }

@@ -25,13 +25,13 @@ namespace Conduit
         {
             if (!request.Headers.Contains("Authorization"))
             {
-                // TODO: What to do if JWT can't be retrieved, redirect to login or ?
+                // If the token cannot be retrieved, send the request anyway
+                // We do this because some of Conduit's API endpoints are "token optional" e.g. GET /profiles/<username>
+                // Calling that without a token returns the profile, calling with a token returns a Profile + info
+                // about whether the current logged in user has favorited the profile
+                // API will return a 401 if a token was required, we'll let the calling function deal with that
                 var savedToken = await _localStorage.GetItemAsync<string>("authToken");
-                if(string.IsNullOrEmpty(savedToken))
-                {
-                    return new HttpResponseMessage(HttpStatusCode.BadRequest);
-                }
-                else
+                if (!string.IsNullOrEmpty(savedToken))
                 {
                     request.Headers.Add("Authorization", $"Token {savedToken}");
                 }

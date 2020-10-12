@@ -1,14 +1,22 @@
 ﻿@page "/"
-@inject PublicClient PubClient
+@inject PublicClient MyClient
 
 <div class="home-page">
 
-    <div class="banner">
-        <div class="container">
-            <h1 class="logo-font">conduit</h1>
-            <p>A place to share your knowledge.</p>
-        </div>
-    </div>
+    <AuthorizeView>
+        <Authorizing>
+        </Authorizing>
+        <Authorized>           
+        </Authorized>
+        <NotAuthorized>
+            <div class="banner">
+                <div class="container">
+                    <h1 class="logo-font">conduit</h1>
+                    <p>A place to share your knowledge.</p>
+                </div>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
 
     <div class="container page">
         <div class="row">
@@ -24,9 +32,9 @@
                     </ul>
                 </div>
 
-                @if (articles != null)
+                @if (Articles != null)
                 {
-                    @foreach (var article in articles)
+                    @foreach (var article in Articles)
                     {
                         <div class="article-preview">
                             <div class="article-meta">
@@ -66,13 +74,13 @@
                     <p>Popular Tags</p>
 
                     <div class="tag-list">
-                        @if (popularTags == null)
+                        @if (PopularTags == null)
                         {
                             <text>Loading tags...</text>
                         }
                         else
                         {
-                            foreach (var tag in popularTags)
+                            foreach (var tag in PopularTags)
                             {
                                 <a href="" class="tag-pill tag-default">@tag</a>
                             }
@@ -86,39 +94,21 @@
 </div>
 
 @code {
-    List<Conduit.Models.Article> articles;
-    List<string> popularTags;
+    List<Conduit.Models.Article> Articles;
+    List<string> PopularTags;
 
     protected override async Task OnInitializedAsync()
     {
-        articles = await PubClient.GetArticles();
-        popularTags = await PubClient.GetTags();
+        var articleResult = await MyClient.GetArticles();
+        if (articleResult.Success)
+        {
+            Articles = articleResult.ReponseObject;
+        }
+
+        var tagsResult = await MyClient.GetTags();
+        if (tagsResult.Success)
+        {
+            PopularTags = tagsResult.ReponseObject;
+        }
     }
-
-    //@using System.Security.Claims
-    //@using Microsoft.AspNetCore.Components.Authorization
-    //@inject AuthenticationStateProvider AuthenticationStateProvider
-
-    //var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-    //var user = authState.User;
-
-    //if (user.Identity.IsAuthenticated)
-    //{
-    //    _authMessage = $"{user.Identity.Name} is authenticated.";
-    //    _claims = user.Claims;
-    //    _surnameMessage =
-    //        $"Surname: {user.FindFirst(c => c.Type == ClaimTypes.Surname)?.Value}";
-    //}
-    //else
-    //{
-    //    _authMessage = "The user is NOT authenticated.";
-    //}
-
-    //async Task RemovePizza(Pizza configuredPizza)
-    //{
-    //    if (await JSInterop.Confirm($"Remove {configuredPizza.Special.Name} pizza from your order?"))
-    //    {
-    //        OrderState.RemoveConfiguredPizza(configuredPizza);
-    //    }
-    //}
 }
