@@ -1,6 +1,5 @@
 ﻿@page "/{usernameTag}"
 @using Conduit.Models
-@inject PublicClient MyPublicClient
 @inject ConduitClient MyConduitClient
 @inject NavigationManager MyNavigationManager
 @inject AuthenticationStateProvider MyAuthStateProvider
@@ -60,26 +59,7 @@
                     </ul>
                 </div>
 
-                @*TODO: ArticleList component pageable by size 5 or 10*@
-                @if (ArticleList == null)
-                {
-                    <div class="article-preview">
-                        Loading articles...
-                    </div>
-                }
-                else if (ArticleList.Any())
-                {
-                    @foreach (var article in ArticleList)
-                    {
-                        <ArticlePreview ArticleModel="article" />
-                    }
-                }
-                else
-                {
-                    <div class="article-preview">
-                        No articles are here... yet.
-                    </div>
-                }
+                <ArticleList Articles="ArticleList" Size="5" />
             </div>
 
         </div>
@@ -136,7 +116,7 @@
             MyNavigationManager.NavigateTo("/");
         }
 
-        var articleResult = await MyPublicClient.GetArticles(author: Username);
+        var articleResult = await MyConduitClient.GetArticles(author: Username);
         if (articleResult.Success)
         {
             ArticleList = articleResult.ReponseObject;
@@ -150,7 +130,7 @@
         ArticleList = null;
         if (useFavoritedArticles)
         {
-            var articleResult = await MyPublicClient.GetArticles(favorited: Username);
+            var articleResult = await MyConduitClient.GetArticles(favorited: Username);
             if (articleResult.Success)
             {
                 ArticleList = articleResult.ReponseObject;
@@ -158,7 +138,7 @@
         }
         else
         {
-            var articleResult = await MyPublicClient.GetArticles(author: Username);
+            var articleResult = await MyConduitClient.GetArticles(author: Username);
             if (articleResult.Success)
             {
                 ArticleList = articleResult.ReponseObject;

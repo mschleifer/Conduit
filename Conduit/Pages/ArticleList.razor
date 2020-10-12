@@ -1,0 +1,28 @@
+﻿@if (Articles == null)
+{
+    <div class="article-preview">
+        Loading articles...
+    </div>
+}
+else if (Articles.Any())
+{
+    @foreach (var article in Articles)
+    {
+        <ArticlePreview ArticleModel="article" />
+    }
+}
+else
+{
+    <div class="article-preview">
+        No articles are here... yet.
+    </div>
+}
+
+@code {
+    [Parameter]
+    public List<Conduit.Models.Article> Articles { get; set; }
+    [Parameter]
+    public int Size { get; set; }
+
+    public int CurrentPage { get; set; }
+}

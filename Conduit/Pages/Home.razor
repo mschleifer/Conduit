@@ -1,5 +1,6 @@
 ﻿@page "/"
-@inject PublicClient MyClient
+@inject PublicClient MyPublicClient
+@inject ConduitClient MyConduitClient
 
 <div class="home-page">
 
@@ -99,13 +100,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var articleResult = await MyClient.GetArticles();
+        var articleResult = await MyConduitClient.GetArticles();
         if (articleResult.Success)
         {
             Articles = articleResult.ReponseObject;
         }
 
-        var tagsResult = await MyClient.GetTags();
+        var tagsResult = await MyPublicClient.GetTags();
         if (tagsResult.Success)
         {
             PopularTags = tagsResult.ReponseObject;

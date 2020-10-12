@@ -1,12 +1,14 @@
-﻿<div class="article-preview">
+﻿@inject ConduitClient MyConduitClient
+
+<div class="article-preview">
     <div class="article-meta">
         <a href="/@@@ArticleModel.Author.UserName"><img src="@ArticleModel.Author.Image" /></a>
         <div class="info">
             <a href="/@@@ArticleModel.Author.UserName" class="author">@ArticleModel.Author.UserName</a>
             <span class="date">@ArticleModel.CreatedAt</span>
         </div>
-        @*TODO: Favorite/unfavorite on click*@
-        <button class="btn @(ArticleModel.Favorited ? "btn-primary" : "btn-outline-primary") btn-sm pull-xs-right">
+        <button class="btn @(ArticleModel.Favorited ? "btn-primary" : "btn-outline-primary") btn-sm pull-xs-right"
+                @onclick="@(() => ToggleFavoriteArticle(!ArticleModel.Favorited, ArticleModel.Slug))">
             <i class="ion-heart"></i> @ArticleModel.FavoritesCount
         </button>
     </div>
@@ -20,4 +22,24 @@
 @code {
     [Parameter]
     public Conduit.Models.Article ArticleModel { get; set; }
+
+    async Task ToggleFavoriteArticle(bool shouldFavorite, string articleSlug)
+    {
+        if (shouldFavorite)
+        {
+            var favoriteResult = await MyConduitClient.FavoriteArticle(articleSlug);
+            if (favoriteResult.Success)
+            {
+                ArticleModel = favoriteResult.ReponseObject;
+            }
+        }
+        else
+        {
+            var unfavoriteResult = await MyConduitClient.UnfavoriteArticle(articleSlug);
+            if (unfavoriteResult.Success)
+            {
+                ArticleModel = unfavoriteResult.ReponseObject;
+            }
+        }
+    }
 }
