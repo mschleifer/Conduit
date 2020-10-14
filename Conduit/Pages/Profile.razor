@@ -24,7 +24,7 @@
                     }
                     else
                     {
-                        <button class="btn btn-sm btn-outline-secondary action-btn"  @onclick="@(() => ToggleFollowUser(!ProfileModel.Following))">
+                        <button class="btn btn-sm btn-outline-secondary action-btn" @onclick="@(() => ToggleFollowUser(!ProfileModel.Following))">
                             <i class="ion-plus-round"></i>
                             &nbsp;
                             @if (ProfileModel.Following)
@@ -59,7 +59,7 @@
                     </ul>
                 </div>
 
-                <ArticleList Articles="ArticleList" Size="5" />
+                <ArticleList Articles="ArticleList" PageCount="(TotalArticleCount - 1) / 5 + 1" OnPageChange="@((param) => HandleOnPageChange((int)param))" />
             </div>
 
         </div>
@@ -74,13 +74,12 @@
     [CascadingParameter]
     private Task<AuthenticationState> AuthStateTask { get; set; }
 
-    public string Username { get; set; }
-
-    public AuthenticationState AuthState { get; set; }
-    public Models.Profile ProfileModel = new Models.Profile();
-    public List<Article> ArticleList;
-
-    public bool IsFavoritedArticlesSelected { get; set; }
+    private string Username { get; set; }
+    private AuthenticationState AuthState { get; set; }
+    private Models.Profile ProfileModel = new Models.Profile();
+    private List<Article> ArticleList;
+    private int TotalArticleCount { get; set; }
+    private bool IsFavoritedArticlesSelected { get; set; }
 
     public override async Task SetParametersAsync(ParameterView parameters)
     {
@@ -116,37 +115,40 @@
             MyNavigationManager.NavigateTo("/");
         }
 
-        var articleResult = await MyConduitClient.GetArticles(author: Username);
-        if (articleResult.Success)
-        {
-            ArticleList = articleResult.ReponseObject;
-        }
+        await GetMoreArticles(0);
 
     }
 
-    async Task ToggleFavoritedArticles(bool useFavoritedArticles)
+    private async Task ToggleFavoritedArticles(bool useFavoritedArticles)
     {
         IsFavoritedArticlesSelected = useFavoritedArticles;
         ArticleList = null;
-        if (useFavoritedArticles)
+        await GetMoreArticles(0);
+    }
+
+    private async Task GetMoreArticles(int pageIndex)
+    {
+        if (IsFavoritedArticlesSelected)
         {
-            var articleResult = await MyConduitClient.GetArticles(favorited: Username);
+            var articleResult = await MyConduitClient.GetArticles(favorited: Username, limit: 5, offset: pageIndex * 5);
             if (articleResult.Success)
             {
-                ArticleList = articleResult.ReponseObject;
+                ArticleList = articleResult.ReponseObject.Articles;
+                TotalArticleCount = articleResult.ReponseObject.ArticlesCount;
             }
         }
         else
         {
-            var articleResult = await MyConduitClient.GetArticles(author: Username);
+            var articleResult = await MyConduitClient.GetArticles(author: Username, limit: 5, offset: pageIndex * 5);
             if (articleResult.Success)
             {
-                ArticleList = articleResult.ReponseObject;
+                ArticleList = articleResult.ReponseObject.Articles;
+                TotalArticleCount = articleResult.ReponseObject.ArticlesCount;
             }
         }
     }
 
-    async Task ToggleFollowUser(bool shouldFollow)
+    private async Task ToggleFollowUser(bool shouldFollow)
     {
         if (shouldFollow)
         {
@@ -164,5 +166,10 @@
                 ProfileModel.Following = false;
             }
         }
+    }
+
+    private async Task HandleOnPageChange(int newPageIndex)
+    {
+        await GetMoreArticles(newPageIndex);
     }
 }

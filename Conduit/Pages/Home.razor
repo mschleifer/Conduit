@@ -103,7 +103,7 @@
         var articleResult = await MyConduitClient.GetArticles();
         if (articleResult.Success)
         {
-            Articles = articleResult.ReponseObject;
+            Articles = articleResult.ReponseObject.Articles;
         }
 
         var tagsResult = await MyPublicClient.GetTags();

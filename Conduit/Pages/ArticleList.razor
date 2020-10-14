@@ -10,6 +10,18 @@ else if (Articles.Any())
     {
         <ArticlePreview ArticleModel="article" />
     }
+
+    <nav>
+        <ul class="pagination">
+            @for (var i = 0; i < PageCount; i++)
+            {
+                // Something weird here with Blazor and for-loops, need to set the loop index to a separate variable
+                // otherwise the param passed to ProcessPagingButtonClick will always be the max loop index
+                var pageIndex = i;
+                <li class="page-item @(pageIndex == CurrentPageIndex ? "active" :"")"><a class="page-link" href="#" @onclick="(() => ProcessPagingButtonClick(pageIndex))" @onclick:preventDefault >@(pageIndex + 1)</a></li>
+            }
+        </ul>
+    </nav>
 }
 else
 {
@@ -22,7 +34,22 @@ else
     [Parameter]
     public List<Conduit.Models.Article> Articles { get; set; }
     [Parameter]
-    public int Size { get; set; }
+    public int PageCount { get; set; }
+    [Parameter]
+    public EventCallback<int> OnPageChange { get; set; }
 
-    public int CurrentPage { get; set; }
+    private int CurrentPageIndex { get; set; }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        // Reset index to page zero when a new list of articles are passed in
+        CurrentPageIndex = 0;
+        await base.SetParametersAsync(parameters);
+    }
+
+    public async Task ProcessPagingButtonClick(int selectedPageIndex)
+    {
+        CurrentPageIndex = selectedPageIndex;
+        await OnPageChange.InvokeAsync(selectedPageIndex);
+    }
 }

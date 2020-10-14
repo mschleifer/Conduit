@@ -132,7 +132,7 @@ namespace Conduit
         public async Task<Article> GetArticle(string slug) =>
             await _httpClient.GetFromJsonAsync<Article>($"api/articles/:{slug}");
 
-        public async Task<ConduitApiResponse<List<Article>>> GetArticles(string tag = null, string author = null, string favorited = null, int? limit = null, int? offset = null)
+        public async Task<ConduitApiResponse<ArticleList>> GetArticles(string tag = null, string author = null, string favorited = null, int? limit = null, int? offset = null)
         {
             var query = HttpUtility.ParseQueryString(string.Empty);
             if (!string.IsNullOrEmpty(tag)) { query["tag"] = tag; }
@@ -146,22 +146,20 @@ namespace Conduit
             var response = await _httpClient.GetAsync($"api/articles{queryString}");
             var content = await response.Content.ReadAsStringAsync();
 
-            ConduitApiResponse<List<Article>> result;
+            ConduitApiResponse<ArticleList> result;
 
             if (!response.IsSuccessStatusCode)
             {
                 // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
-                result = JsonSerializer.Deserialize<ConduitApiResponse<List<Article>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                result = JsonSerializer.Deserialize<ConduitApiResponse<ArticleList>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 result.Success = false;
 
                 return result;
             }
 
-            // If successful, deserialize the response into a Profile object
-            // Ideally, we'd just use JsonSerializer.Deserialize on the reponse, but that doesn't work with our models, 
-            // so the JsonExtensions method below parses the response for us
-            var profileObject = JsonExtensions.SearchJsonRoot<List<Article>>(content, "articles");
-            result = new ConduitApiResponse<List<Article>> { Success = true, ReponseObject = profileObject };
+            // If successful, deserialize the response into a ArticleList response object
+            var articleListObject = JsonSerializer.Deserialize<ArticleList>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            result = new ConduitApiResponse<ArticleList> { Success = true, ReponseObject = articleListObject };
 
             return result;
         }
