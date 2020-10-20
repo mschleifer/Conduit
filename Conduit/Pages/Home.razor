@@ -7,7 +7,7 @@
     <AuthorizeView>
         <Authorizing>
         </Authorizing>
-        <Authorized>           
+        <Authorized>
         </Authorized>
         <NotAuthorized>
             <div class="banner">
@@ -33,41 +33,10 @@
                     </ul>
                 </div>
 
-                @if (Articles != null)
-                {
-                    @foreach (var article in Articles)
-                    {
-                        <div class="article-preview">
-                            <div class="article-meta">
-                                <a href="/@@@(article.Author.UserName)"><img src="@article.Author.Image" /></a>
-                                <div class="info">
-                                    <a href="/@@@(article.Author.UserName)" class="author">@article.Author.UserName</a>
-                                    <span class="date">@article.CreatedAt.ToString("MMMM d, yyyy")</span>
-                                </div>
-                                <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                                    <i class="ion-heart"></i> @article.FavoritesCount
-                                </button>
-                            </div>
-                            <a href="/article/@(article.Slug)" class="preview-link">
-                                <h1>@article.Title</h1>
-                                <p>@article.Description</p>
-                                <span>Read more...</span>
-                                <ul class="tag-list">
-                                    @foreach (var tag in article.TagList)
-                                    {
-                                        <li class="tag-default tag-pill tag-outline">
-                                            @tag
-                                        </li>
-                                    }
-                                </ul>
-                            </a>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <text>Loading articles...</text>
-                }
+                <ArticleList Articles="ArticleList"
+                             PageCount="(TotalArticleCount - 1) / 10 + 1"
+                             CurrentPageIndex="CurrentPageIndex"
+                             OnPageChange="@((param) => HandleOnPageChange((int)param))" />
             </div>
 
             <div class="col-md-3">
@@ -95,21 +64,48 @@
 </div>
 
 @code {
-    List<Conduit.Models.Article> Articles;
+    private List<Conduit.Models.Article> ArticleList;
+    private int TotalArticleCount { get; set; }
+    private int CurrentPageIndex { get; set; }
     List<string> PopularTags;
+    bool IsFeedSelected { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var articleResult = await MyConduitClient.GetArticles();
-        if (articleResult.Success)
-        {
-            Articles = articleResult.ReponseObject.Articles;
-        }
+        await GetMoreArticles(0);
 
         var tagsResult = await MyPublicClient.GetTags();
         if (tagsResult.Success)
         {
             PopularTags = tagsResult.ReponseObject;
         }
+    }
+
+    private async Task GetMoreArticles(int pageIndex)
+    {
+        if (IsFeedSelected)
+        {
+            var articleResult = await MyConduitClient.GetFeed(limit: 10, offset: pageIndex * 10);
+            if (articleResult.Success)
+            {
+                ArticleList = articleResult.ReponseObject.Articles;
+                TotalArticleCount = articleResult.ReponseObject.ArticlesCount;
+            }
+        }
+        else
+        {
+            var articleResult = await MyConduitClient.GetArticles(limit: 10, offset: pageIndex * 10);
+            if (articleResult.Success)
+            {
+                ArticleList = articleResult.ReponseObject.Articles;
+                TotalArticleCount = articleResult.ReponseObject.ArticlesCount;
+            }
+        }
+    }
+
+    private async Task HandleOnPageChange(int newPageIndex)
+    {
+        CurrentPageIndex = newPageIndex;
+        await GetMoreArticles(newPageIndex);
     }
 }

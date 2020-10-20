@@ -141,9 +141,38 @@ namespace Conduit
             if (limit != null) { query["limit"] = limit?.ToString(); }
             if (offset != null) { query["offset"] = offset?.ToString(); }
 
-            string queryString = $"?{query.ToString()}";
+            string queryString = $"?{query}";
 
             var response = await _httpClient.GetAsync($"api/articles{queryString}");
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<ArticleList> result;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                result = JsonSerializer.Deserialize<ConduitApiResponse<ArticleList>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                result.Success = false;
+
+                return result;
+            }
+
+            // If successful, deserialize the response into a ArticleList response object
+            var articleListObject = JsonSerializer.Deserialize<ArticleList>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            result = new ConduitApiResponse<ArticleList> { Success = true, ReponseObject = articleListObject };
+
+            return result;
+        }
+
+        public async Task<ConduitApiResponse<ArticleList>> GetFeed(int? limit = null, int? offset = null)
+        {
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            if (limit != null) { query["limit"] = limit?.ToString(); }
+            if (offset != null) { query["offset"] = offset?.ToString(); }
+
+            string queryString = $"?{query}";
+
+            var response = await _httpClient.GetAsync($"api/articles/feed{queryString}");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<ArticleList> result;

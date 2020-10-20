@@ -4,30 +4,42 @@
         Loading articles...
     </div>
 }
-else if (Articles.Any())
-{
-    @foreach (var article in Articles)
-    {
-        <ArticlePreview ArticleModel="article" />
-    }
-
-    <nav>
-        <ul class="pagination">
-            @for (var i = 0; i < PageCount; i++)
-            {
-                // Something weird here with Blazor and for-loops, need to set the loop index to a separate variable
-                // otherwise the param passed to ProcessPagingButtonClick will always be the max loop index
-                var pageIndex = i;
-                <li class="page-item @(pageIndex == CurrentPageIndex ? "active" :"")"><a class="page-link" href="#" @onclick="(() => ProcessPagingButtonClick(pageIndex))" @onclick:preventDefault >@(pageIndex + 1)</a></li>
-            }
-        </ul>
-    </nav>
-}
 else
 {
-    <div class="article-preview">
-        No articles are here... yet.
-    </div>
+    if (Articles.Any())
+    {
+        @foreach (var article in Articles)
+        {
+            <ArticlePreview ArticleModel="article" />
+        }
+
+        if (IsLoadingArticles)
+        {
+            <div class="article-preview">
+                Loading articles...
+            </div>
+        }
+
+        <nav>
+            <ul class="pagination">
+                @for (var i = 0; i < PageCount; i++)
+                {
+                    // Something weird here with Blazor and for-loops, need to set the loop index to a separate variable
+                    // otherwise the param passed to ProcessPagingButtonClick will always be the max loop index
+                    var pageIndex = i;
+                    <li class="page-item @(pageIndex == CurrentPageIndex ? "active" : "")">
+                        <a class="page-link" href="#" @onclick="(() => ProcessPagingButtonClick(pageIndex))" @onclick:preventDefault>@(pageIndex + 1)</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+    else
+    {
+        <div class="article-preview">
+            No articles are here... yet.
+        </div>
+    }
 }
 
 @code {
@@ -36,20 +48,22 @@ else
     [Parameter]
     public int PageCount { get; set; }
     [Parameter]
+    public int CurrentPageIndex { get; set; }
+    [Parameter]
     public EventCallback<int> OnPageChange { get; set; }
 
-    private int CurrentPageIndex { get; set; }
+    private bool IsLoadingArticles { get; set; }
 
     public override async Task SetParametersAsync(ParameterView parameters)
     {
-        // Reset index to page zero when a new list of articles are passed in
-        CurrentPageIndex = 0;
         await base.SetParametersAsync(parameters);
     }
 
     public async Task ProcessPagingButtonClick(int selectedPageIndex)
     {
         CurrentPageIndex = selectedPageIndex;
+        IsLoadingArticles = true;
         await OnPageChange.InvokeAsync(selectedPageIndex);
+        IsLoadingArticles = false;
     }
 }

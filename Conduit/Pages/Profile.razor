@@ -59,7 +59,10 @@
                     </ul>
                 </div>
 
-                <ArticleList Articles="ArticleList" PageCount="(TotalArticleCount - 1) / 5 + 1" OnPageChange="@((param) => HandleOnPageChange((int)param))" />
+                <ArticleList Articles="ArticleList" 
+                             PageCount="(TotalArticleCount - 1) / 5 + 1" 
+                             CurrentPageIndex="CurrentPageIndex"
+                             OnPageChange="@((param) => HandleOnPageChange((int)param))" />
             </div>
 
         </div>
@@ -79,6 +82,7 @@
     private Models.Profile ProfileModel = new Models.Profile();
     private List<Article> ArticleList;
     private int TotalArticleCount { get; set; }
+    private int CurrentPageIndex { get; set; }
     private bool IsFavoritedArticlesSelected { get; set; }
 
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -123,6 +127,7 @@
     {
         IsFavoritedArticlesSelected = useFavoritedArticles;
         ArticleList = null;
+        CurrentPageIndex = 0;
         await GetMoreArticles(0);
     }
 
@@ -170,6 +175,7 @@
 
     private async Task HandleOnPageChange(int newPageIndex)
     {
+        CurrentPageIndex = newPageIndex;
         await GetMoreArticles(newPageIndex);
     }
 }
