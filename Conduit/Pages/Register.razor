@@ -58,7 +58,7 @@
 
         if (registerResult.Success)
         {
-            MyAuthService.LogUserIn(registerResult.ReponseObject);
+            await MyAuthService.LogUserIn(registerResult.ReponseObject);
             MyNavigationManager.NavigateTo($"/");
         }
         else if (registerResult.Errors?.Any() ?? false)

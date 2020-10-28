@@ -89,7 +89,7 @@ namespace Conduit
             registerResult = new ConduitApiResponse<User> { Success = true, ReponseObject = userObject };
 
             // Set the app up to make use of the returned JWT
-            _authenticationService.LogUserIn(registerResult.ReponseObject);
+            await _authenticationService.LogUserIn(registerResult.ReponseObject);
 
             return registerResult;
         }
@@ -120,7 +120,7 @@ namespace Conduit
             loginResult = new ConduitApiResponse<User> { Success = true, ReponseObject = userObject };
 
             // Set the app up to make use of the returned JWT
-            _authenticationService.LogUserIn(loginResult.ReponseObject);
+            await _authenticationService.LogUserIn(loginResult.ReponseObject);
 
             return loginResult;
         }
