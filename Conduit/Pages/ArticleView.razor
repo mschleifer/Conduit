@@ -1,122 +1,131 @@
-﻿@page "/Article"
+﻿@page "/Article/{articleSlug}"
+@using Conduit.Models
+@inject ConduitClient MyConduitClient
 
 <div class="article-page">
+    @if (ArticleModel == null)
+    {
+        <text>Loading article...</text>
+    }
+    else
+    {
+        <div class="banner">
+            <div class="container">
 
-    <div class="banner">
-        <div class="container">
+                <h1>@ArticleModel.Title</h1>
 
-            <h1>How to build webapps that scale</h1>
+                <ArticleViewActions ArticleModel="ArticleModel"
+                                    OnFollowChange="@((param) => HandleOnFollowChange((bool)param))"
+                                    OnFavoriteChange="@((param) => HandleOnFavoriteChange((bool)param))"></ArticleViewActions>
 
-            <div class="article-meta">
-                <a href=""><img src="http://i.imgur.com/Qr71crq.jpg" /></a>
-                <div class="info">
-                    <a href="" class="author">Eric Simons</a>
-                    <span class="date">January 20th</span>
-                </div>
-                <button class="btn btn-sm btn-outline-secondary">
-                    <i class="ion-plus-round"></i>
-                    &nbsp;
-                    Follow Eric Simons <span class="counter">(10)</span>
-                </button>
-                &nbsp;&nbsp;
-                <button class="btn btn-sm btn-outline-primary">
-                    <i class="ion-heart"></i>
-                    &nbsp;
-                    Favorite Post <span class="counter">(29)</span>
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="container page">
-
-        <div class="row article-content">
-            <div class="col-md-12">
-                <p>
-                    Web development technologies have evolved at an incredible clip over the past few years.
-                </p>
-                <h2 id="introducing-ionic">Introducing RealWorld.</h2>
-                <p>It's a great solution for learning how other frameworks work.</p>
             </div>
         </div>
 
-        <hr />
+        <div class="container page">
 
-        <div class="article-actions">
-            <div class="article-meta">
-                <a href="profile.html"><img src="http://i.imgur.com/Qr71crq.jpg" /></a>
-                <div class="info">
-                    <a href="" class="author">Eric Simons</a>
-                    <span class="date">January 20th</span>
+            <div class="row article-content">
+                <div class="col-md-12">
+                    @ArticleModel.Body
                 </div>
-
-                <button class="btn btn-sm btn-outline-secondary">
-                    <i class="ion-plus-round"></i>
-                    &nbsp;
-                    Follow Eric Simons <span class="counter">(10)</span>
-                </button>
-                &nbsp;
-                <button class="btn btn-sm btn-outline-primary">
-                    <i class="ion-heart"></i>
-                    &nbsp;
-                    Favorite Post <span class="counter">(29)</span>
-                </button>
             </div>
-        </div>
 
-        <div class="row">
+            <hr />
 
-            <div class="col-xs-12 col-md-8 offset-md-2">
+            <div class="article-actions">
+                <ArticleViewActions ArticleModel="ArticleModel"
+                                    OnFollowChange="@((param) => HandleOnFollowChange((bool)param))"
+                                    OnFavoriteChange="@((param) => HandleOnFavoriteChange((bool)param))"></ArticleViewActions>
+            </div>
 
-                <form class="card comment-form">
-                    <div class="card-block">
-                        <textarea class="form-control" placeholder="Write a comment..." rows="3"></textarea>
-                    </div>
-                    <div class="card-footer">
-                        <img src="http://i.imgur.com/Qr71crq.jpg" class="comment-author-img" />
-                        <button class="btn btn-sm btn-primary">
-                            Post Comment
-                        </button>
-                    </div>
-                </form>
+            <div class="row">
 
-                <div class="card">
-                    <div class="card-block">
-                        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    </div>
-                    <div class="card-footer">
-                        <a href="" class="comment-author">
-                            <img src="http://i.imgur.com/Qr71crq.jpg" class="comment-author-img" />
-                        </a>
-                        &nbsp;
-                        <a href="" class="comment-author">Jacob Schmidt</a>
-                        <span class="date-posted">Dec 29th</span>
-                    </div>
-                </div>
+                <div class="col-xs-12 col-md-8 offset-md-2">
 
-                <div class="card">
-                    <div class="card-block">
-                        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    </div>
-                    <div class="card-footer">
-                        <a href="" class="comment-author">
-                            <img src="http://i.imgur.com/Qr71crq.jpg" class="comment-author-img" />
-                        </a>
-                        &nbsp;
-                        <a href="" class="comment-author">Jacob Schmidt</a>
-                        <span class="date-posted">Dec 29th</span>
-                        <span class="mod-options">
-                            <i class="ion-edit"></i>
-                            <i class="ion-trash-a"></i>
-                        </span>
-                    </div>
+                    <form class="card comment-form">
+                        <div class="card-block">
+                            <textarea class="form-control" placeholder="Write a comment..." rows="3"></textarea>
+                        </div>
+                        <div class="card-footer">
+                            <img src="@CurrentUser.Image" class="comment-author-img" />
+                            <button class="btn btn-sm btn-primary">
+                                Post Comment
+                            </button>
+                        </div>
+                    </form>
+
+                    @if (Comments == null)
+                    {
+                        <text>Loading comments...</text>
+                    }
+                    else
+                    {
+                        foreach (var comment in Comments)
+                        {
+                            <div class="card">
+                                <div class="card-block">
+                                    <p class="card-text">@comment.Body</p>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="" class="comment-author">
+                                        <img src="@comment.Author.Image" class="comment-author-img" />
+                                    </a>
+                                    &nbsp;
+                                    <a href="" class="comment-author">@comment.Author.UserName</a>
+                                    <span class="date-posted">@comment.CreatedAt</span>
+                                    <span class="mod-options">
+                                        <i class="ion-trash-a"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    }
                 </div>
 
             </div>
 
         </div>
-
-    </div>
+    }
 
 </div>
+
+@code {
+    [Parameter]
+    public string ArticleSlug { get; set; }
+
+    private Article ArticleModel { get; set; }
+    private List<Comment> Comments { get; set; }
+    private User CurrentUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var articleResult = await MyConduitClient.GetArticle(ArticleSlug);
+
+        if (articleResult.Success)
+        {
+            ArticleModel = articleResult.ReponseObject;
+        }
+
+        CurrentUser = await MyConduitClient.GetCurrentUser();
+
+        var commentsResult = await MyConduitClient.GetComments(ArticleSlug);
+
+        if (commentsResult.Success)
+        {
+            Comments = commentsResult.ReponseObject;
+        }
+    }
+
+    private async Task HandleOnFollowChange(bool isFollowing)
+    {
+        await Task.Run(() => ArticleModel.Author.Following = isFollowing);
+    }
+
+    private async Task HandleOnFavoriteChange(bool isFavorited)
+    {
+        await Task.Run(() =>
+        {
+            ArticleModel.Favorited = isFavorited;
+            if (isFavorited) { ArticleModel.FavoritesCount++; } else { ArticleModel.FavoritesCount--; }
+        });
+    }
+} 

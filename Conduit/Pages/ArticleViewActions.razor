@@ -1,0 +1,79 @@
+﻿@using Conduit.Models
+@inject ConduitClient MyConduitClient 
+
+<div class="article-meta">
+    <a href="/@@@ArticleModel.Author.UserName">
+        <img src="@ArticleModel.Author.Image" />
+    </a>
+    <div class="info">
+        <a href="" class="author">@ArticleModel.Author.UserName</a>
+        <span class="date">@ArticleModel.CreatedAt</span>
+    </div>
+    <button class="btn btn-sm @(ArticleModel.Author.Following ? "btn-secondary" : "btn-outline-secondary")" @onclick="@(() => ToggleFollowUser(!ArticleModel.Author.Following))">
+        <i class="ion-plus-round"></i>
+        &nbsp;
+        @(ArticleModel.Author.Following ? "Unfollow" : "Follow") @ArticleModel.Author.UserName
+    </button>
+    &nbsp;&nbsp;
+    <button class="btn btn-sm  @(ArticleModel.Favorited ? "btn-primary" : "btn-outline-primary")" @onclick="@(() => ToggleFavoriteArticle(!ArticleModel.Favorited, ArticleModel.Slug))">
+        <i class="ion-heart"></i>
+        &nbsp;
+        @(ArticleModel.Favorited ? "Unfavorite" : "Favorite") Article <span class="counter">(@ArticleModel.FavoritesCount)</span>
+    </button>
+</div>
+
+@code {
+    [Parameter]
+    public Article ArticleModel { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnFollowChange { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnFavoriteChange { get; set; }
+
+    private async Task ToggleFollowUser(bool shouldFollow)
+    {
+        if (shouldFollow)
+        {
+            var followResult = await MyConduitClient.FollowUser(ArticleModel.Author.UserName);
+            if (followResult.Success)
+            {
+                ArticleModel.Author.Following = true;
+            }
+        }
+        else
+        {
+            var unfollowResult = await MyConduitClient.UnfollowUser(ArticleModel.Author.UserName);
+            if (unfollowResult.Success)
+            {
+                ArticleModel.Author.Following = false;
+            }
+        }
+
+        await OnFollowChange.InvokeAsync(ArticleModel.Author.Following);
+    }
+
+    //TODO: favorites count not updating
+    private async Task ToggleFavoriteArticle(bool shouldFavorite, string articleSlug)
+    {
+        if (shouldFavorite)
+        {
+            var favoriteResult = await MyConduitClient.FavoriteArticle(articleSlug);
+            if (favoriteResult.Success)
+            {
+                ArticleModel = favoriteResult.ReponseObject;
+            }
+        }
+        else
+        {
+            var unfavoriteResult = await MyConduitClient.UnfavoriteArticle(articleSlug);
+            if (unfavoriteResult.Success)
+            {
+                ArticleModel = unfavoriteResult.ReponseObject;
+            }
+        }
+
+        await OnFavoriteChange.InvokeAsync(ArticleModel.Favorited);
+    }
+}

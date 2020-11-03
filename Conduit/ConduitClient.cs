@@ -129,8 +129,29 @@ namespace Conduit
             return apiRequestResult;
         }
 
-        public async Task<Article> GetArticle(string slug) =>
-            await _httpClient.GetFromJsonAsync<Article>($"api/articles/:{slug}");
+        public async Task<ConduitApiResponse<Article>> GetArticle(string slug) {
+            var response = await _httpClient.GetAsync($"api/articles/{slug}");
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<Article> result;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                result = JsonSerializer.Deserialize<ConduitApiResponse<Article>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                result.Success = false;
+
+                return result;
+            }
+
+            // If successful, deserialize the response into an Article object
+            // Ideally, we'd just use JsonSerializer.Deserialize on the reponse, but that doesn't work with our models, 
+            // so the JsonExtensions method below parses the response for us
+            var articleObject = JsonExtensions.SearchJsonRoot<Article>(content, "article");
+            result = new ConduitApiResponse<Article> { Success = true, ReponseObject = articleObject };
+
+            return result;
+        }
 
         public async Task<ConduitApiResponse<ArticleList>> GetArticles(string tag = null, string author = null, string favorited = null, int? limit = null, int? offset = null)
         {
@@ -241,6 +262,29 @@ namespace Conduit
             apiRequestResult = new ConduitApiResponse<Article> { Success = true, ReponseObject = returnedObject };
 
             return apiRequestResult;
+        }
+
+        public async Task<ConduitApiResponse<List<Comment>>> GetComments(string slug)
+        {
+            var response = await _httpClient.GetAsync($"api/articles/{slug}/comments");
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<List<Comment>> result;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                result = JsonSerializer.Deserialize<ConduitApiResponse<List<Comment>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                result.Success = false;
+
+                return result;
+            }
+
+            // If successful, deserialize the response into a List<Comment> response object
+            var commentListObject = JsonExtensions.SearchJsonRoot<List<Comment>>(content, "comments");
+            result = new ConduitApiResponse<List<Comment>> { Success = true, ReponseObject = commentListObject };
+
+            return result;
         }
     }
 }
