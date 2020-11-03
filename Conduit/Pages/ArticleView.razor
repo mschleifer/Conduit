@@ -61,22 +61,7 @@
                     {
                         foreach (var comment in Comments)
                         {
-                            <div class="card">
-                                <div class="card-block">
-                                    <p class="card-text">@comment.Body</p>
-                                </div>
-                                <div class="card-footer">
-                                    <a href="" class="comment-author">
-                                        <img src="@comment.Author.Image" class="comment-author-img" />
-                                    </a>
-                                    &nbsp;
-                                    <a href="" class="comment-author">@comment.Author.UserName</a>
-                                    <span class="date-posted">@comment.CreatedAt</span>
-                                    <span class="mod-options">
-                                        <i class="ion-trash-a"></i>
-                                    </span>
-                                </div>
-                            </div>
+                            <ArticleComment></ArticleComment>
                         }
                     }
                 </div>

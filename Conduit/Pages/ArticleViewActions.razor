@@ -54,7 +54,6 @@
         await OnFollowChange.InvokeAsync(ArticleModel.Author.Following);
     }
 
-    //TODO: favorites count not updating
     private async Task ToggleFavoriteArticle(bool shouldFavorite, string articleSlug)
     {
         if (shouldFavorite)
