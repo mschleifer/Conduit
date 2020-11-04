@@ -286,5 +286,53 @@ namespace Conduit
 
             return result;
         }
+
+        public async Task<ConduitApiResponse<Comment>> PostComment(string slug, Comment commentModel)
+        {
+            // Conduit API expects a specific JSON format, so wrap the comment data before serializing
+            var dataWrapper = new { Comment = commentModel };
+
+            var response = await _httpClient.PostAsJsonAsync($"api/articles/{slug}/comments/", dataWrapper);
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<Comment> apiRequestResult;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                apiRequestResult = JsonSerializer.Deserialize<ConduitApiResponse<Comment>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                apiRequestResult.Success = false;
+
+                return apiRequestResult;
+            }
+
+            var commentObject = JsonExtensions.SearchJsonRoot<Comment>(content, "comment");
+            apiRequestResult = new ConduitApiResponse<Comment> { Success = true, ReponseObject = commentObject };
+
+            return apiRequestResult;
+        }
+
+        public async Task<ConduitApiResponse<bool>> DeleteComment(string slug, int commentId)
+        {
+            var response = await _httpClient.DeleteAsync($"api/articles/{slug}/comments/{commentId}");
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<bool> apiRequestResult;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                apiRequestResult = JsonSerializer.Deserialize<ConduitApiResponse<bool>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                apiRequestResult.Success = false;
+
+                return apiRequestResult;
+            }
+
+            // This call doesn't return anything on success, so just wrap a bool and return that
+            apiRequestResult = new ConduitApiResponse<bool> { Success = true, ReponseObject = true };
+
+            return apiRequestResult;
+        }
+
     }
 }

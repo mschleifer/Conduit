@@ -1,0 +1,44 @@
+﻿@using Conduit.Models
+@inject ConduitClient MyConduitClient
+
+<div class="card">
+    <div class="card-block">
+        <p class="card-text">@CommentModel.Body</p>
+    </div>
+    <div class="card-footer">
+        <a href="/@@@CommentModel.Author.UserName" class="comment-author">
+            <img src="@CommentModel.Author.Image" class="comment-author-img" />
+        </a>
+        &nbsp;
+        <a href="" class="comment-author">@CommentModel.Author.UserName</a>
+        <span class="date-posted">@CommentModel.CreatedAt</span>
+        @if (CanDelete)
+        {
+            <span class="mod-options">
+                <i class="ion-trash-a" @onclick="() => DeleteComment()"></i>
+            </span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Comment CommentModel { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnCommentDelete { get; set; }
+
+    private bool CanDelete { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var currentUser = await MyConduitClient.GetCurrentUser();
+
+        CanDelete = currentUser.Username == CommentModel.Author.UserName;
+    }
+
+    private async Task DeleteComment()
+    {
+        await OnCommentDelete.InvokeAsync(CommentModel.Id);
+    }
+}

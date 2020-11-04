@@ -3,26 +3,31 @@
 @inject ConduitClient MyConduitClient
 
 <div class="article-page">
-    @if (ArticleModel == null)
-    {
-        <text>Loading article...</text>
-    }
-    else
-    {
-        <div class="banner">
-            <div class="container">
 
+    <div class="banner">
+        <div class="container">
+            @if (ArticleModel == null)
+            {
+                <text>Loading article...</text>
+            }
+            else
+            {
                 <h1>@ArticleModel.Title</h1>
 
                 <ArticleViewActions ArticleModel="ArticleModel"
                                     OnFollowChange="@((param) => HandleOnFollowChange((bool)param))"
-                                    OnFavoriteChange="@((param) => HandleOnFavoriteChange((bool)param))"></ArticleViewActions>
-
-            </div>
+                                    OnFavoriteChange="@((param) => HandleOnFavoriteChange((bool)param))" />
+            }
         </div>
+    </div>
 
-        <div class="container page">
-
+    <div class="container page">
+        @if (ArticleModel == null)
+        {
+            <text>Loading article...</text>
+        }
+        else
+        {
             <div class="row article-content">
                 <div class="col-md-12">
                     @ArticleModel.Body
@@ -34,24 +39,33 @@
             <div class="article-actions">
                 <ArticleViewActions ArticleModel="ArticleModel"
                                     OnFollowChange="@((param) => HandleOnFollowChange((bool)param))"
-                                    OnFavoriteChange="@((param) => HandleOnFavoriteChange((bool)param))"></ArticleViewActions>
+                                    OnFavoriteChange="@((param) => HandleOnFavoriteChange((bool)param))" />
             </div>
 
             <div class="row">
 
                 <div class="col-xs-12 col-md-8 offset-md-2">
 
-                    <form class="card comment-form">
-                        <div class="card-block">
-                            <textarea class="form-control" placeholder="Write a comment..." rows="3"></textarea>
+                    <EditForm Model="@NewCommentModel" OnValidSubmit="@PostComment">
+                        <DataAnnotationsValidator />
+                        <ServerValidator @ref="ServerValidator" />
+
+                        <div class="error-messages">
+                            <ValidationSummary />
                         </div>
-                        <div class="card-footer">
-                            <img src="@CurrentUser.Image" class="comment-author-img" />
-                            <button class="btn btn-sm btn-primary">
-                                Post Comment
-                            </button>
+
+                        <div class="card comment-form">
+                            <div class="card-block">
+                                <InputTextArea @bind-Value="NewCommentModel.Body" class="form-control" placeholder="Write a comment..." rows="3" />
+                            </div>
+                            <div class="card-footer">
+                                <img src="@CurrentUser.Image" class="comment-author-img" />
+                                <button class="btn btn-sm btn-primary" disabled="@(IsSubmitting)">
+                                    Post Comment
+                                </button>
+                            </div>
                         </div>
-                    </form>
+                    </EditForm>
 
                     @if (Comments == null)
                     {
@@ -61,15 +75,16 @@
                     {
                         foreach (var comment in Comments)
                         {
-                            <ArticleComment></ArticleComment>
+                            <ArticleComment CommentModel="comment"
+                                            OnCommentDelete="@((param) => HandleOnCommentDelete((int)param))" />
                         }
                     }
                 </div>
 
             </div>
+        }
 
-        </div>
-    }
+    </div>
 
 </div>
 
@@ -80,6 +95,10 @@
     private Article ArticleModel { get; set; }
     private List<Comment> Comments { get; set; }
     private User CurrentUser { get; set; }
+
+    private Comment NewCommentModel = new Comment();
+    private bool IsSubmitting { get; set; }
+    private ServerValidator ServerValidator;
 
     protected override async Task OnInitializedAsync()
     {
@@ -112,5 +131,39 @@
             ArticleModel.Favorited = isFavorited;
             if (isFavorited) { ArticleModel.FavoritesCount++; } else { ArticleModel.FavoritesCount--; }
         });
+    }
+
+    private async Task HandleOnCommentDelete(int commentId)
+    {
+        var deleteResult = await MyConduitClient.DeleteComment(ArticleSlug, commentId);
+
+        if (deleteResult.Success)
+        {
+            Comments = Comments.Where(x => x.Id != commentId).ToList();
+        }
+    }
+
+    private async Task PostComment()
+    {
+        ServerValidator.ClearErrors();
+
+        IsSubmitting = true;
+
+        var loginResult = await MyConduitClient.PostComment(ArticleModel.Slug, NewCommentModel);
+
+        IsSubmitting = false;
+
+        if (loginResult.Success)
+        {
+            Comments.Add(loginResult.ReponseObject);
+        }
+        else if (loginResult.Errors?.Any() ?? false)
+        {
+            ServerValidator.DisplayErrors(loginResult.Errors);
+        }
+        else
+        {
+            ServerValidator.DisplayError(string.Empty, "Your request could not be processed");
+        }
     }
 } 
