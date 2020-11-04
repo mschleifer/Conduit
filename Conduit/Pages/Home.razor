@@ -23,13 +23,19 @@
                         <AuthorizeView>
                             <Authorized>
                                 <li class="nav-item">
-                                    <a class="nav-link @(UsingPersonalFeed ? "active" : "")" href="" @onclick="@(() => ToggleFeed(true))">Your Feed</a>
+                                    <a class="nav-link @(FeedType == Enums.FeedType.Personal ? "active" : "")" href="" @onclick="@(() => ToggleFeed(Enums.FeedType.Personal))">Your Feed</a>
                                 </li>
                             </Authorized>
                         </AuthorizeView>
                         <li class="nav-item">
-                            <a class="nav-link @(UsingPersonalFeed ? "" : "active")" href="" @onclick="@(() => ToggleFeed(false))">Global Feed</a>
+                            <a class="nav-link @(FeedType == Enums.FeedType.Global ? "active" : "")" href="" @onclick="@(() => ToggleFeed(Enums.FeedType.Global))">Global Feed</a>
                         </li>
+                        @if (FeedType == Enums.FeedType.Tag)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link active" href="">#@SelectedTag</a>
+                            </li>
+                        }
                     </ul>
                 </div>
 
@@ -52,7 +58,7 @@
                         {
                             foreach (var tag in PopularTags)
                             {
-                                <a href="" class="tag-pill tag-default">@tag</a>
+                                <a href="" class="tag-pill tag-default" @onclick="@(() => ToggleFeed(Enums.FeedType.Tag, tag))">@tag</a>
                             }
                         }
                     </div>
@@ -71,13 +77,14 @@
     private int TotalArticleCount { get; set; }
     private int CurrentPageIndex { get; set; }
     private List<string> PopularTags;
-    private bool UsingPersonalFeed { get; set; }
+    private Enums.FeedType FeedType { get; set; }
+    private string SelectedTag { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        UsingPersonalFeed = (await AuthStateTask).User.Identity.IsAuthenticated;
+        FeedType = (await AuthStateTask).User.Identity.IsAuthenticated ? Enums.FeedType.Personal : Enums.FeedType.Global;
 
-        await ToggleFeed(UsingPersonalFeed);
+        await ToggleFeed(FeedType);
 
         var tagsResult = await MyPublicClient.GetTags();
         if (tagsResult.Success)
@@ -86,33 +93,36 @@
         }
     }
 
-    private async Task ToggleFeed(bool usePeronalFeed)
+    private async Task ToggleFeed(Enums.FeedType feedType, string tag = null)
     {
-        UsingPersonalFeed = usePeronalFeed;
+        FeedType = feedType;
         ArticleList = null;
         CurrentPageIndex = 0;
+        SelectedTag = tag;
         await GetMoreArticles(0);
     }
 
     private async Task GetMoreArticles(int pageIndex)
     {
-        if (UsingPersonalFeed)
+        Models.ConduitApiResponse<Models.ArticleList> articleResult = new Models.ConduitApiResponse<Models.ArticleList> { Success = false };
+
+        if (FeedType == Enums.FeedType.Personal)
         {
-            var articleResult = await MyConduitClient.GetFeed(limit: 10, offset: pageIndex * 10);
-            if (articleResult.Success)
-            {
-                ArticleList = articleResult.ReponseObject.Articles;
-                TotalArticleCount = articleResult.ReponseObject.ArticlesCount;
-            }
+            articleResult = await MyConduitClient.GetFeed(limit: 10, offset: pageIndex * 10);
         }
-        else
+        else if (FeedType == Enums.FeedType.Global)
         {
-            var articleResult = await MyConduitClient.GetArticles(limit: 10, offset: pageIndex * 10);
-            if (articleResult.Success)
-            {
-                ArticleList = articleResult.ReponseObject.Articles;
-                TotalArticleCount = articleResult.ReponseObject.ArticlesCount;
-            }
+            articleResult = await MyConduitClient.GetArticles(limit: 10, offset: pageIndex * 10);
+        }
+        else if (FeedType == Enums.FeedType.Tag)
+        {
+            articleResult = await MyConduitClient.GetArticles(limit: 10, offset: pageIndex * 10, tag: SelectedTag);
+        }
+
+        if (articleResult.Success)
+        {
+            ArticleList = articleResult.ReponseObject.Articles;
+            TotalArticleCount = articleResult.ReponseObject.ArticlesCount;
         }
     }
 
