@@ -22,6 +22,9 @@
 </div>
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; }
+
     [Parameter]
     public Comment CommentModel { get; set; }
 
@@ -32,9 +35,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var currentUser = await MyConduitClient.GetCurrentUser();
-
-        CanDelete = currentUser.Username == CommentModel.Author.UserName;
+        CanDelete = (await AuthStateTask).User.Identity.Name == CommentModel.Author.UserName;
     }
 
     private async Task DeleteComment()
