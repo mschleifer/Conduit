@@ -214,6 +214,78 @@ namespace Conduit
             return result;
         }
 
+        public async Task<ConduitApiResponse<Article>> CreateArticle(Article articleModel)
+        {
+            // Conduit API expects a specific JSON format, so wrap the comment data before serializing
+            var dataWrapper = new { Article = articleModel };
+
+            var response = await _httpClient.PostAsJsonAsync($"api/articles/", dataWrapper);
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<Article> apiRequestResult;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                apiRequestResult = JsonSerializer.Deserialize<ConduitApiResponse<Article>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                apiRequestResult.Success = false;
+
+                return apiRequestResult;
+            }
+
+            var articleObject = JsonExtensions.SearchJsonRoot<Article>(content, "article");
+            apiRequestResult = new ConduitApiResponse<Article> { Success = true, ReponseObject = articleObject };
+
+            return apiRequestResult;
+        }
+
+        public async Task<ConduitApiResponse<Article>> UpdateArticle(Article articleModel)
+        {
+            // Conduit API expects a specific JSON format, so wrap the comment data before serializing
+            var dataWrapper = new { Article = articleModel };
+
+            var response = await _httpClient.PutAsJsonAsync($"api/articles/{articleModel.Slug}/", dataWrapper);
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<Article> apiRequestResult;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                apiRequestResult = JsonSerializer.Deserialize<ConduitApiResponse<Article>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                apiRequestResult.Success = false;
+
+                return apiRequestResult;
+            }
+
+            var commentObject = JsonExtensions.SearchJsonRoot<Article>(content, "article");
+            apiRequestResult = new ConduitApiResponse<Article> { Success = true, ReponseObject = commentObject };
+
+            return apiRequestResult;
+        }
+
+        public async Task<ConduitApiResponse<bool>> DeleteArticle(string slug)
+        {
+            var response = await _httpClient.DeleteAsync($"api/articles/{slug}");
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<bool> apiRequestResult;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                apiRequestResult = JsonSerializer.Deserialize<ConduitApiResponse<bool>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                apiRequestResult.Success = false;
+
+                return apiRequestResult;
+            }
+
+            // This call doesn't return anything on success, so just wrap a bool and return that
+            apiRequestResult = new ConduitApiResponse<bool> { Success = true, ReponseObject = true };
+
+            return apiRequestResult;
+        }
+
         public async Task<ConduitApiResponse<Article>> FavoriteArticle(string articleSlug)
         {
             var response = await _httpClient.PostAsync($"api/articles/{articleSlug}/favorite", null);
