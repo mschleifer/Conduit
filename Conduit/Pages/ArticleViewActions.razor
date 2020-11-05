@@ -1,5 +1,5 @@
 ﻿@using Conduit.Models
-@inject ConduitClient MyConduitClient 
+@inject ConduitClient MyConduitClient
 
 <div class="article-meta">
     <a href="/@@@ArticleModel.Author.UserName">
@@ -9,20 +9,39 @@
         <a href="" class="author">@ArticleModel.Author.UserName</a>
         <span class="date">@ArticleModel.CreatedAt</span>
     </div>
-    <button class="btn btn-sm @(ArticleModel.Author.Following ? "btn-secondary" : "btn-outline-secondary")" @onclick="@(() => ToggleFollowUser(!ArticleModel.Author.Following))">
-        <i class="ion-plus-round"></i>
-        &nbsp;
-        @(ArticleModel.Author.Following ? "Unfollow" : "Follow") @ArticleModel.Author.UserName
-    </button>
-    &nbsp;&nbsp;
-    <button class="btn btn-sm  @(ArticleModel.Favorited ? "btn-primary" : "btn-outline-primary")" @onclick="@(() => ToggleFavoriteArticle(!ArticleModel.Favorited, ArticleModel.Slug))">
-        <i class="ion-heart"></i>
-        &nbsp;
-        @(ArticleModel.Favorited ? "Unfavorite" : "Favorite") Article <span class="counter">(@ArticleModel.FavoritesCount)</span>
-    </button>
+    @if (CurrentUserCanEdit)
+    {
+        <span>
+            <a class="btn btn-outline-secondary btn-sm" href="/editor/@ArticleModel.Slug">
+                <i class="ion-edit"></i>Edit Article
+            </a>
+            <button class="btn btn-outline-danger btn-sm" @onclick="@(() => DeleteArticle())">
+                <i class="ion-trash-a"></i>Delete Article
+            </button>
+        </span>
+    }
+    else
+    {
+        <span>
+            <button class="btn btn-sm @(ArticleModel.Author.Following ? "btn-secondary" : "btn-outline-secondary")" @onclick="@(() => ToggleFollowUser(!ArticleModel.Author.Following))">
+                <i class="ion-plus-round"></i>
+                &nbsp;
+                @(ArticleModel.Author.Following ? "Unfollow" : "Follow") @ArticleModel.Author.UserName
+            </button>
+            &nbsp;&nbsp;
+            <button class="btn btn-sm  @(ArticleModel.Favorited ? "btn-primary" : "btn-outline-primary")" @onclick="@(() => ToggleFavoriteArticle(!ArticleModel.Favorited, ArticleModel.Slug))">
+                <i class="ion-heart"></i>
+                &nbsp;
+                @(ArticleModel.Favorited ? "Unfavorite" : "Favorite") Article <span class="counter">(@ArticleModel.FavoritesCount)</span>
+            </button>
+        </span>
+    }
 </div>
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; }
+
     [Parameter]
     public Article ArticleModel { get; set; }
 
@@ -32,6 +51,16 @@
     [Parameter]
     public EventCallback<bool> OnFavoriteChange { get; set; }
 
+    [Parameter]
+    public EventCallback<string> OnDeleteArticle { get; set; }
+
+    private bool CurrentUserCanEdit { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUserCanEdit = (await AuthStateTask).User.Identity.Name == ArticleModel.Author.UserName;
+    }
+
     private async Task ToggleFollowUser(bool shouldFollow)
     {
         if (shouldFollow)
@@ -40,7 +69,9 @@
             if (followResult.Success)
             {
                 ArticleModel.Author.Following = true;
+                await OnFollowChange.InvokeAsync(ArticleModel.Author.Following);
             }
+            // TODO: what to display on failure?
         }
         else
         {
@@ -48,10 +79,10 @@
             if (unfollowResult.Success)
             {
                 ArticleModel.Author.Following = false;
+                await OnFollowChange.InvokeAsync(ArticleModel.Author.Following);
             }
+            // TODO: what to display on failure?
         }
-
-        await OnFollowChange.InvokeAsync(ArticleModel.Author.Following);
     }
 
     private async Task ToggleFavoriteArticle(bool shouldFavorite, string articleSlug)
@@ -62,7 +93,9 @@
             if (favoriteResult.Success)
             {
                 ArticleModel = favoriteResult.ReponseObject;
+                await OnFavoriteChange.InvokeAsync(ArticleModel.Favorited);
             }
+            // TODO: what to display on failure?
         }
         else
         {
@@ -70,9 +103,14 @@
             if (unfavoriteResult.Success)
             {
                 ArticleModel = unfavoriteResult.ReponseObject;
+                await OnFavoriteChange.InvokeAsync(ArticleModel.Favorited);
             }
+            // TODO: what to display on failure?
         }
+    }
 
-        await OnFavoriteChange.InvokeAsync(ArticleModel.Favorited);
+    private async Task DeleteArticle()
+    {
+        await OnDeleteArticle.InvokeAsync(ArticleModel.Slug);
     }
 }

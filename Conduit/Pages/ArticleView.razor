@@ -1,6 +1,7 @@
 ﻿@page "/Article/{articleSlug}"
 @using Conduit.Models
 @inject ConduitClient MyConduitClient
+@inject NavigationManager MyNavigationManager
 
 <div class="article-page">
 
@@ -38,8 +39,9 @@
 
             <div class="article-actions">
                 <ArticleViewActions ArticleModel="ArticleModel"
-                                    OnFollowChange="@((param) => HandleOnFollowChange((bool)param))"
-                                    OnFavoriteChange="@((param) => HandleOnFavoriteChange((bool)param))" />
+                                    OnFollowChange="@((param) => HandleOnFollowChange(param))"
+                                    OnFavoriteChange="@((param) => HandleOnFavoriteChange(param))"
+                                    OnDeleteArticle="@((param) => HandleOnArticleDelete(param))"/>
             </div>
 
             <div class="row">
@@ -133,6 +135,17 @@
         });
     }
 
+    private async Task HandleOnArticleDelete(string slug)
+    {
+        var deleteResult = await MyConduitClient.DeleteArticle(slug);
+
+        if (deleteResult.Success)
+        {
+            MyNavigationManager.NavigateTo("/");
+        }
+        // TODO: what to display on failure?
+    }
+
     private async Task HandleOnCommentDelete(int commentId)
     {
         var deleteResult = await MyConduitClient.DeleteComment(ArticleSlug, commentId);
@@ -141,6 +154,7 @@
         {
             Comments = Comments.Where(x => x.Id != commentId).ToList();
         }
+        // TODO: what to display on failure?
     }
 
     private async Task PostComment()
