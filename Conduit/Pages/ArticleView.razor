@@ -163,17 +163,17 @@
 
         IsSubmitting = true;
 
-        var loginResult = await MyConduitClient.PostComment(ArticleModel.Slug, NewCommentModel);
+        var postResult = await MyConduitClient.PostComment(ArticleModel.Slug, NewCommentModel);
 
         IsSubmitting = false;
 
-        if (loginResult.Success)
+        if (postResult.Success)
         {
-            Comments.Add(loginResult.ReponseObject);
+            Comments.Add(postResult.ReponseObject);
         }
-        else if (loginResult.Errors?.Any() ?? false)
+        else if (postResult.Errors?.Any() ?? false)
         {
-            ServerValidator.DisplayErrors(loginResult.Errors);
+            ServerValidator.DisplayErrors(postResult.Errors);
         }
         else
         {
