@@ -4,12 +4,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 
 namespace Conduit
 {
@@ -17,7 +16,8 @@ namespace Conduit
     /// 
     /// </summary>
     /// <remarks>
-    /// https://chrissainty.com/securing-your-blazor-apps-authentication-with-clientside-blazor-using-webapi-aspnet-core-identity
+    ///  Based on the work at 
+    ///  https://chrissainty.com/securing-your-blazor-apps-authentication-with-clientside-blazor-using-webapi-aspnet-core-identity
     /// /</remarks>
     public class ConduitAuthenticationStateProvider : AuthenticationStateProvider
     {
@@ -46,7 +46,15 @@ namespace Conduit
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", savedToken);
 
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(savedToken), "jwt")));
+            // Expected claims from Conduit JWT are "id", "username", and "exp"
+            var claims = ParseClaimsFromJwt(savedToken);
+
+            // Need to copy the "username" claim from Conduit JWT into a "Name" claim because .NET allows working with
+            // the specific claim "Name" much more easily than "username" (i.e. User.Identity.Name)
+            var username = claims.Single(x => x.Type == "username").Value;
+            claims = claims.Append(new Claim(ClaimTypes.Name, username));
+
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt")));
         }
 
         /// <summary>
