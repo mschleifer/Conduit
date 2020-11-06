@@ -1,31 +1,120 @@
-﻿@page "/Editor"
+﻿@page "/Editor/"
+@page "/Editor/{articleSlug}"
+@using Conduit.Models
+@inject ConduitClient MyConduitClient
+@inject NavigationManager MyNavigationManager
 
 <div class="editor-page">
     <div class="container page">
         <div class="row">
 
             <div class="col-md-10 offset-md-1 col-xs-12">
-                <form>
+
+                <EditForm Model="@ArticleModel" OnValidSubmit="@PostArticle" id="articleForm">
+                    <DataAnnotationsValidator />
+                    <ServerValidator @ref="ServerValidator" />
+
+                    <div class="error-messages">
+                        <ValidationSummary />
+                    </div>
+
                     <fieldset>
                         <fieldset class="form-group">
-                            <input type="text" class="form-control form-control-lg" placeholder="Article Title">
+                            <InputText @bind-Value="ArticleModel.Title" type="text" class="form-control form-control-lg" placeholder="Article Title" />
                         </fieldset>
                         <fieldset class="form-group">
-                            <input type="text" class="form-control" placeholder="What's this article about?">
+                            <InputText @bind-Value="ArticleModel.Description" type="text" class="form-control" placeholder="What's this article about?" />
                         </fieldset>
                         <fieldset class="form-group">
-                            <textarea class="form-control" rows="8" placeholder="Write your article (in markdown)"></textarea>
+                            <InputTextArea @bind-Value="ArticleModel.Body" class="form-control" rows="8" placeholder="Write your article (in markdown)" />
                         </fieldset>
-                        <fieldset class="form-group">
-                            <input type="text" class="form-control" placeholder="Enter tags"><div class="tag-list"></div>
-                        </fieldset>
-                        <button class="btn btn-lg pull-xs-right btn-primary" type="button">
-                            Publish Article
-                        </button>
                     </fieldset>
-                </form>
+                </EditForm>
+
+                <fieldset class="form-group">
+                    <input @bind="NewTagInput" @onkeyup="(e => AddTag(e))" type="text" class="form-control" placeholder="Enter tags" />
+
+                    <div class="tag-list">
+                        @foreach (var tag in ArticleModel.TagList)
+                        {
+                            <span class="tag-default tag-pill ng-binding ng-scope">
+                                <i class="ion-close-round" @onclick="(() => RemoveTag(tag))"></i>
+                                @tag
+                            </span>
+                        }
+                    </div>
+                </fieldset>
+                <button type="submit" form="articleForm" class="btn btn-lg pull-xs-right btn-primary" disabled="@(IsSubmitting)">
+                    Publish Article
+                </button>
             </div>
 
         </div>
     </div>
 </div>
+
+@code {
+    [Parameter]
+    public string ArticleSlug { get; set; }
+
+    private bool CurrentUserCanEdit { get; set; }
+    private Article ArticleModel = new Article { TagList = new List<string>() };
+    private string NewTagInput { get; set; }
+
+    private bool IsSubmitting { get; set; }
+    private ServerValidator ServerValidator;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(ArticleSlug))
+        {
+            var articleResult = await MyConduitClient.GetArticle(ArticleSlug);
+
+            if (articleResult.Success)
+            {
+                ArticleModel = articleResult.ReponseObject;
+            }
+        }
+    }
+
+    private async Task AddTag(KeyboardEventArgs eventArgs)
+    {
+        if (eventArgs.Key == "Enter")
+        {
+            if (!ArticleModel.TagList.Contains(NewTagInput))
+            {
+                await Task.Run(() => ArticleModel.TagList.Add(NewTagInput));
+                NewTagInput = string.Empty;
+            }
+        }
+    }
+
+    private async Task RemoveTag(string tag)
+    {
+        await Task.Run(() => ArticleModel.TagList.Remove(tag));
+    }
+
+    private async Task PostArticle()
+    {
+        ServerValidator.ClearErrors();
+
+        IsSubmitting = true;
+
+        var postResult = await MyConduitClient.CreateArticle(ArticleModel);
+
+        IsSubmitting = false;
+
+        if (postResult.Success)
+        {
+            MyNavigationManager.NavigateTo($"/article/{postResult.ReponseObject.Slug}");
+        }
+        else if (postResult.Errors?.Any() ?? false)
+        {
+            ServerValidator.DisplayErrors(postResult.Errors);
+        }
+        else
+        {
+            ServerValidator.DisplayError(string.Empty, "Your request could not be processed");
+        }
+    }
+}
