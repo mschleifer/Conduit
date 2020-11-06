@@ -16,6 +16,14 @@
         <h1>@ArticleModel.Title</h1>
         <p>@ArticleModel.Description</p>
         <span>Read more...</span>
+        <ul class="tag-list">
+            @foreach (var tag in ArticleModel.TagList)
+            {
+                <li class="tag-default tag-pill tag-outline">
+                    @tag
+                </li>
+            }
+        </ul>
     </a>
 </div>
 

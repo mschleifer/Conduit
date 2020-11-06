@@ -31,7 +31,15 @@
         {
             <div class="row article-content">
                 <div class="col-md-12">
-                    @ArticleModel.Body
+                    <p>
+                        @ArticleModel.Body
+                    </p>
+                    <ul class="tag-list">
+                        @foreach (var tag in ArticleModel.TagList)
+                        {
+                            <li class="tag-default tag-pill tag-outline">@tag</li>
+                        }
+                    </ul>
                 </div>
             </div>
 
@@ -41,7 +49,7 @@
                 <ArticleViewActions ArticleModel="ArticleModel"
                                     OnFollowChange="@((param) => HandleOnFollowChange(param))"
                                     OnFavoriteChange="@((param) => HandleOnFavoriteChange(param))"
-                                    OnDeleteArticle="@((param) => HandleOnArticleDelete(param))"/>
+                                    OnDeleteArticle="@((param) => HandleOnArticleDelete(param))" />
             </div>
 
             <div class="row">
