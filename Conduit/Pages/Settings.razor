@@ -83,6 +83,9 @@
 
         if (updateResult.Success)
         {
+            // TODO: Test this
+            // Log the user in with the new information so that their username and image claims are updated
+            await MyAuthService.LogUserIn(updateResult.ReponseObject);
             MyNavigationManager.NavigateTo($"/");
         }
         else if (updateResult.Errors?.Any() ?? false)

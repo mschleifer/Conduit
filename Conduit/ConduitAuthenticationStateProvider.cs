@@ -38,6 +38,7 @@ namespace Conduit
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var savedToken = await _localStorage.GetItemAsync<string>("authToken");
+            var profileImage = await _localStorage.GetItemAsync<string>("profileImage");
 
             if (string.IsNullOrWhiteSpace(savedToken))
             {
@@ -54,6 +55,11 @@ namespace Conduit
             var username = claims.Single(x => x.Type == "username").Value;
             claims = claims.Append(new Claim(ClaimTypes.Name, username));
 
+            if (!string.IsNullOrEmpty(profileImage))
+            {
+                claims = claims.Append(new Claim("ProfileImage", profileImage));
+            }
+
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt")));
         }
 
@@ -62,9 +68,9 @@ namespace Conduit
         ///  NotifyAuthenticationStateChanged() method which fires an event that will update any 
         ///  CascadingAuthenticationState components with the new AuthenticationState.
         /// </summary>
-        public void MarkUserAsAuthenticated(string username)
+        public void MarkUserAsAuthenticated(string username, string profileImage)
         {
-            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, username) }, "apiauth"));
+            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, username), new Claim("ProfileImage", profileImage) }, "apiauth"));
             var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
             NotifyAuthenticationStateChanged(authState);
         }

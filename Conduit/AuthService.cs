@@ -36,7 +36,8 @@ namespace Conduit
         public async Task LogUserIn(User userModel)
         {
             await _localStorage.SetItemAsync("authToken", userModel.Token);
-            ((ConduitAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(userModel.Username);
+            await _localStorage.SetItemAsync("profileImage", userModel.Image);
+            ((ConduitAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(userModel.Username, userModel.Image);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", userModel.Token);
         }
 
