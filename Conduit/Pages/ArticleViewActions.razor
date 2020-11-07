@@ -7,7 +7,7 @@
     </a>
     <div class="info">
         <a href="" class="author">@ArticleModel.Author.UserName</a>
-        <span class="date">@ArticleModel.CreatedAt</span>
+        <span class="date">@ArticleModel.CreatedAt.ToString("MMMM d,yyyy")</span>
     </div>
     <AuthorizeView>
         @if (context.User.Identity.Name == ArticleModel.Author.UserName)
