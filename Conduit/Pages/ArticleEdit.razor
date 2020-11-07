@@ -96,14 +96,14 @@
 
     private async Task PostArticle()
     {
-        //TODO: different API calls for an update vs create
         ServerValidator.ClearErrors();
 
         IsSubmitting = true;
 
-        var postResult = await MyConduitClient.CreateArticle(ArticleModel);
-
-        IsSubmitting = false;
+        // Call the create endpoint if this is a new article, update endpoint if it already exists
+        var postResult = string.IsNullOrEmpty(ArticleModel.Slug) ?
+                         await MyConduitClient.CreateArticle(ArticleModel) :
+                         await MyConduitClient.UpdateArticle(ArticleModel);
 
         if (postResult.Success)
         {
@@ -117,5 +117,7 @@
         {
             ServerValidator.DisplayError(string.Empty, "Your request could not be processed");
         }
+
+        IsSubmitting = false;
     }
 }
