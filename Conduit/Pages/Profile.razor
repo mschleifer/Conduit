@@ -16,28 +16,30 @@
                     <p>
                         @ProfileModel.Bio
                     </p>
-                    @if (ProfileModel.Username == AuthState.User.Identity.Name)
-                    {
-                        <a class="btn btn-sm btn-outline-secondary action-btn" href="/settings">
-                            <i class="ion-gear-a"></i> Edit Profile Settings
-                        </a>
-                    }
-                    else
-                    {
-                        <button class="btn btn-sm btn-outline-secondary action-btn" @onclick="@(() => ToggleFollowUser(!ProfileModel.Following))">
-                            <i class="ion-plus-round"></i>
-                            &nbsp;
-                            @if (ProfileModel.Following)
-                            {
-                                <text>Unfollow @ProfileModel.Username</text>
+                    <AuthorizeView>
+                        @if (context.User.Identity.Name == ProfileModel.Username)
+                        {
+                            <a class="btn btn-sm btn-outline-secondary action-btn" href="/settings">
+                                <i class="ion-gear-a"></i> Edit Profile Settings
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-secondary action-btn" @onclick="@(() => ToggleFollowUser(!ProfileModel.Following))">
+                                <i class="ion-plus-round"></i>
+                                &nbsp;
+                                @if (ProfileModel.Following)
+                                {
+                                    <text>Unfollow @ProfileModel.Username</text>
 
-                            }
-                            else
-                            {
-                                <text>Follow @ProfileModel.Username</text>
-                            }
-                        </button>
-                    }
+                                }
+                                else
+                                {
+                                    <text>Follow @ProfileModel.Username</text>
+                                }
+                            </button>
+                        }
+                    </AuthorizeView>
                 </div>
 
             </div>
@@ -74,17 +76,13 @@
     [Parameter]
     public string UsernameTag { get; set; }
 
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthStateTask { get; set; }
-
-    private string Username { get; set; }
-    private AuthenticationState AuthState { get; set; }
     private Models.Profile ProfileModel = new Models.Profile();
     private List<Article> ArticleList;
     private int TotalArticleCount { get; set; }
     private int CurrentPageIndex { get; set; }
     private bool IsFavoritedArticlesSelected { get; set; }
 
+    //TODO: fix when navigating to profile from a profile the page doesn't update
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         await base.SetParametersAsync(parameters);
@@ -104,11 +102,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        AuthState = await AuthStateTask;
+        var username = UsernameTag.Substring(1);
 
-        Username = UsernameTag.Substring(1);
-
-        var profileResult = await MyConduitClient.GetProfile(Username);
+        var profileResult = await MyConduitClient.GetProfile(username);
 
         if (profileResult.Success)
         {
@@ -120,7 +116,6 @@
         }
 
         await GetMoreArticles(0);
-
     }
 
     private async Task ToggleFavoritedArticles(bool useFavoritedArticles)
@@ -135,7 +130,7 @@
     {
         if (IsFavoritedArticlesSelected)
         {
-            var articleResult = await MyConduitClient.GetArticles(favorited: Username, limit: 5, offset: pageIndex * 5);
+            var articleResult = await MyConduitClient.GetArticles(favorited: ProfileModel.Username, limit: 5, offset: pageIndex * 5);
             if (articleResult.Success)
             {
                 ArticleList = articleResult.ReponseObject.Articles;
@@ -144,7 +139,7 @@
         }
         else
         {
-            var articleResult = await MyConduitClient.GetArticles(author: Username, limit: 5, offset: pageIndex * 5);
+            var articleResult = await MyConduitClient.GetArticles(author: ProfileModel.Username, limit: 5, offset: pageIndex * 5);
             if (articleResult.Success)
             {
                 ArticleList = articleResult.ReponseObject.Articles;
@@ -157,7 +152,7 @@
     {
         if (shouldFollow)
         {
-            var followResult = await MyConduitClient.FollowUser(Username);
+            var followResult = await MyConduitClient.FollowUser(ProfileModel.Username);
             if (followResult.Success)
             {
                 ProfileModel.Following = true;
@@ -165,7 +160,7 @@
         }
         else
         {
-            var unfollowResult = await MyConduitClient.UnfollowUser(Username);
+            var unfollowResult = await MyConduitClient.UnfollowUser(ProfileModel.Username);
             if (unfollowResult.Success)
             {
                 ProfileModel.Following = false;

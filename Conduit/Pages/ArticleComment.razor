@@ -12,31 +12,23 @@
         &nbsp;
         <a href="" class="comment-author">@CommentModel.Author.UserName</a>
         <span class="date-posted">@CommentModel.CreatedAt</span>
-        @if (CanDelete)
-        {
-            <span class="mod-options">
-                <i class="ion-trash-a" @onclick="() => DeleteComment()"></i>
-            </span>
-        }
+        <AuthorizeView>
+            @if (context.User.Identity.Name == CommentModel.Author.UserName)
+            {
+                <span class="mod-options">
+                    <i class="ion-trash-a" @onclick="() => DeleteComment()"></i>
+                </span>
+            }
+        </AuthorizeView>
     </div>
 </div>
 
 @code {
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthStateTask { get; set; }
-
     [Parameter]
     public Comment CommentModel { get; set; }
 
     [Parameter]
     public EventCallback<int> OnCommentDelete { get; set; }
-
-    private bool CanDelete { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        CanDelete = (await AuthStateTask).User.Identity.Name == CommentModel.Author.UserName;
-    }
 
     private async Task DeleteComment()
     {
