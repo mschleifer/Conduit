@@ -8,6 +8,15 @@ using System.Web;
 
 namespace Conduit.Services
 {
+    /// <summary>
+    /// Main service for calling Conduit API endpoints. Most (but not all) calls require a JWT sent with the request.
+    /// JWT is attached via the ConduitAuthorizationHandler.
+    /// </summary>
+    /// <remarks>
+    /// There's a lot of opportunity to consolidate repeated code in each method that handles reading/parsing the call 
+    /// response and handling success/failure, but I wanted to keep this simplified to focus on other areas that are
+    /// more Blazor specific. 
+    /// </remarks>
     public class ConduitService
     {
         private readonly HttpClient _httpClient;
@@ -19,7 +28,7 @@ namespace Conduit.Services
 
         public async Task<User> GetCurrentUser()
         {
-            var response = await _httpClient.GetAsync("api/user");
+            var response = await _httpClient.GetAsync("user");
             var content = await response.Content.ReadAsStringAsync();
             var userObject = JsonExtensions.SearchJsonRoot<User>(content, "user");
 
@@ -28,7 +37,7 @@ namespace Conduit.Services
 
         public async Task<ConduitApiResponse<Profile>> GetProfile(string username)
         {
-            var response = await _httpClient.GetAsync($"api/profiles/{username}");
+            var response = await _httpClient.GetAsync($"profiles/{username}");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<Profile> result;
@@ -56,7 +65,7 @@ namespace Conduit.Services
             // Conduit API expects a specific JSON format, so wrap the login data before serializing
             var dataWrapper = new { User = updateInfo };
 
-            var response = await _httpClient.PutAsJsonAsync("api/user", dataWrapper);
+            var response = await _httpClient.PutAsJsonAsync("user", dataWrapper);
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<User> updateResult;
@@ -81,7 +90,7 @@ namespace Conduit.Services
 
         public async Task<ConduitApiResponse<Profile>> FollowUser(string username)
         {
-            var response = await _httpClient.PostAsync($"api/profiles/{username}/follow", null);
+            var response = await _httpClient.PostAsync($"profiles/{username}/follow", null);
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<Profile> apiRequestResult;
@@ -106,7 +115,7 @@ namespace Conduit.Services
 
         public async Task<ConduitApiResponse<Profile>> UnfollowUser(string username)
         {
-            var response = await _httpClient.DeleteAsync($"api/profiles/{username}/follow");
+            var response = await _httpClient.DeleteAsync($"profiles/{username}/follow");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<Profile> apiRequestResult;
@@ -130,7 +139,7 @@ namespace Conduit.Services
         }
 
         public async Task<ConduitApiResponse<Article>> GetArticle(string slug) {
-            var response = await _httpClient.GetAsync($"api/articles/{slug}");
+            var response = await _httpClient.GetAsync($"articles/{slug}");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<Article> result;
@@ -164,7 +173,7 @@ namespace Conduit.Services
 
             string queryString = $"?{query}";
 
-            var response = await _httpClient.GetAsync($"api/articles{queryString}");
+            var response = await _httpClient.GetAsync($"articles{queryString}");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<ArticleList> result;
@@ -193,7 +202,7 @@ namespace Conduit.Services
 
             string queryString = $"?{query}";
 
-            var response = await _httpClient.GetAsync($"api/articles/feed{queryString}");
+            var response = await _httpClient.GetAsync($"articles/feed{queryString}");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<ArticleList> result;
@@ -216,7 +225,7 @@ namespace Conduit.Services
 
         public async Task<ConduitApiResponse<List<string>>> GetTags()
         {
-            var response = await _httpClient.GetAsync("api/tags");
+            var response = await _httpClient.GetAsync("tags");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<List<string>> result;
@@ -244,7 +253,7 @@ namespace Conduit.Services
             // Conduit API expects a specific JSON format, so wrap the comment data before serializing
             var dataWrapper = new { Article = articleModel };
 
-            var response = await _httpClient.PostAsJsonAsync($"api/articles/", dataWrapper);
+            var response = await _httpClient.PostAsJsonAsync($"articles/", dataWrapper);
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<Article> apiRequestResult;
@@ -269,7 +278,7 @@ namespace Conduit.Services
             // Conduit API expects a specific JSON format, so wrap the comment data before serializing
             var dataWrapper = new { Article = articleModel };
 
-            var response = await _httpClient.PutAsJsonAsync($"api/articles/{articleModel.Slug}/", dataWrapper);
+            var response = await _httpClient.PutAsJsonAsync($"articles/{articleModel.Slug}/", dataWrapper);
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<Article> apiRequestResult;
@@ -291,7 +300,7 @@ namespace Conduit.Services
 
         public async Task<ConduitApiResponse<bool>> DeleteArticle(string slug)
         {
-            var response = await _httpClient.DeleteAsync($"api/articles/{slug}");
+            var response = await _httpClient.DeleteAsync($"articles/{slug}");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<bool> apiRequestResult;
@@ -313,7 +322,7 @@ namespace Conduit.Services
 
         public async Task<ConduitApiResponse<Article>> FavoriteArticle(string articleSlug)
         {
-            var response = await _httpClient.PostAsync($"api/articles/{articleSlug}/favorite", null);
+            var response = await _httpClient.PostAsync($"articles/{articleSlug}/favorite", null);
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<Article> apiRequestResult;
@@ -338,7 +347,7 @@ namespace Conduit.Services
 
         public async Task<ConduitApiResponse<Article>> UnfavoriteArticle(string articleSlug)
         {
-            var response = await _httpClient.DeleteAsync($"api/articles/{articleSlug}/favorite");
+            var response = await _httpClient.DeleteAsync($"articles/{articleSlug}/favorite");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<Article> apiRequestResult;
@@ -363,7 +372,7 @@ namespace Conduit.Services
 
         public async Task<ConduitApiResponse<List<Comment>>> GetComments(string slug)
         {
-            var response = await _httpClient.GetAsync($"api/articles/{slug}/comments");
+            var response = await _httpClient.GetAsync($"articles/{slug}/comments");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<List<Comment>> result;
@@ -389,7 +398,7 @@ namespace Conduit.Services
             // Conduit API expects a specific JSON format, so wrap the comment data before serializing
             var dataWrapper = new { Comment = commentModel };
 
-            var response = await _httpClient.PostAsJsonAsync($"api/articles/{slug}/comments/", dataWrapper);
+            var response = await _httpClient.PostAsJsonAsync($"articles/{slug}/comments/", dataWrapper);
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<Comment> apiRequestResult;
@@ -411,7 +420,7 @@ namespace Conduit.Services
 
         public async Task<ConduitApiResponse<bool>> DeleteComment(string slug, int commentId)
         {
-            var response = await _httpClient.DeleteAsync($"api/articles/{slug}/comments/{commentId}");
+            var response = await _httpClient.DeleteAsync($"articles/{slug}/comments/{commentId}");
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<bool> apiRequestResult;

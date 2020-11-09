@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using System;
 using System.Collections.Generic;
 
-namespace Conduit
+namespace Conduit.Shared
 {
     /// <summary>
     /// Used with an EditForm or EditContext to add errors returned from the Conduit API to the ValidationSummary. Based
@@ -42,7 +42,7 @@ namespace Conduit
         }
 
         /// <summary>
-        /// See DisplayErrors.
+        /// See DisplayErrors
         /// </summary>
         public void DisplayError(string key, string error)
         {

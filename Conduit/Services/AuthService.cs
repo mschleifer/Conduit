@@ -35,7 +35,7 @@ namespace Conduit.Services
             // Conduit API expects a specific JSON format, so wrap the login data before serializing
             var dataWrapper = new { User = registrationInfo };
 
-            var response = await _httpClient.PostAsJsonAsync("api/users", dataWrapper);
+            var response = await _httpClient.PostAsJsonAsync("users", dataWrapper);
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<User> registerResult;
@@ -63,7 +63,7 @@ namespace Conduit.Services
             // Conduit API expects a specific JSON format, so wrap the login data before serializing
             var dataWrapper = new { User = loginModel };
 
-            var response = await _httpClient.PostAsJsonAsync("api/users/login", dataWrapper);
+            var response = await _httpClient.PostAsJsonAsync("users/login", dataWrapper);
             var content = await response.Content.ReadAsStringAsync();
 
             ConduitApiResponse<User> loginResult;

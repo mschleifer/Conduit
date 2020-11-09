@@ -21,9 +21,9 @@ namespace Conduit
             builder.Services.AddScoped<AuthenticationStateProvider, ConduitAuthenticationStateProvider>();
             builder.Services.AddScoped<ConduitAuthorizationHandler, ConduitAuthorizationHandler>();
 
-            builder.Services.AddHttpClient<ConduitService>(client => client.BaseAddress = new Uri("https://conduit.productionready.io/"))
+            builder.Services.AddHttpClient<ConduitService>(client => client.BaseAddress = new Uri("https://conduit.productionready.io/api/"))
                             .AddHttpMessageHandler<ConduitAuthorizationHandler>();
-            builder.Services.AddHttpClient<AuthService>(client => client.BaseAddress = new Uri("https://conduit.productionready.io/"));
+            builder.Services.AddHttpClient<AuthService>(client => client.BaseAddress = new Uri("https://conduit.productionready.io/api/"));
 
             await builder.Build().RunAsync();
         }

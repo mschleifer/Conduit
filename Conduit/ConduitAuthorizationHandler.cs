@@ -1,5 +1,4 @@
 ﻿using Blazored.LocalStorage;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +18,7 @@ namespace Conduit
             _localStorage = localStorage;
         }
 
-        protected override async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (!request.Headers.Contains("Authorization"))
             {

@@ -5,9 +5,9 @@ namespace Conduit
     /// <summary>
     /// Methods for parsing the reponses returned by the Conduit API
     /// </summary>
-    /// This could all be avoided by using Json.NET, but I wanted to try using System.Text.Json replacement for
-    /// learning purposes. Another option would be to create a wrapper class for each of our models, but I disliked the 
-    /// idea of bloating our model count just to accomodate the Conduit API.
+    /// I think this could all be avoided by using Json.NET, but I wanted to try using System.Text.Json replacement for
+    /// learning purposes. Another option would be to create separate models for the objects returned by each API 
+    /// endpoint, but I disliked the idea of bloating our model count just to accomodate the Conduit API.
     /// <remarks>
     /// </remarks>
     public static class JsonExtensions
