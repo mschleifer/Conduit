@@ -82,7 +82,6 @@
     private int CurrentPageIndex { get; set; }
     private bool IsFavoritedArticlesSelected { get; set; }
 
-    //TODO: fix when navigating to profile from a profile the page doesn't update
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         await base.SetParametersAsync(parameters);
@@ -100,7 +99,10 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    // Need to use OnParametersSet instead of OnInitialized to fix a bug when navigating between profiles. Navigating
+    // from the current Page to another Page that uses the same component (e.g. navigate from /@profileA to /@profileB)
+    // will reuse the existing component instance and OnIntialized will not be called again.
+    protected override async Task OnParametersSetAsync()
     {
         var username = UsernameTag.Substring(1);
 
