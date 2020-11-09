@@ -1,6 +1,6 @@
 ﻿@page "/{usernameTag}"
-@using Conduit.Models
-@inject ConduitClient MyConduitClient
+
+@inject ConduitService MyConduitService
 @inject NavigationManager MyNavigationManager
 @inject AuthenticationStateProvider MyAuthStateProvider
 
@@ -104,7 +104,7 @@
     {
         var username = UsernameTag.Substring(1);
 
-        var profileResult = await MyConduitClient.GetProfile(username);
+        var profileResult = await MyConduitService.GetProfile(username);
 
         if (profileResult.Success)
         {
@@ -130,7 +130,7 @@
     {
         if (IsFavoritedArticlesSelected)
         {
-            var articleResult = await MyConduitClient.GetArticles(favorited: ProfileModel.Username, limit: 5, offset: pageIndex * 5);
+            var articleResult = await MyConduitService.GetArticles(favorited: ProfileModel.Username, limit: 5, offset: pageIndex * 5);
             if (articleResult.Success)
             {
                 ArticleList = articleResult.ReponseObject.Articles;
@@ -139,7 +139,7 @@
         }
         else
         {
-            var articleResult = await MyConduitClient.GetArticles(author: ProfileModel.Username, limit: 5, offset: pageIndex * 5);
+            var articleResult = await MyConduitService.GetArticles(author: ProfileModel.Username, limit: 5, offset: pageIndex * 5);
             if (articleResult.Success)
             {
                 ArticleList = articleResult.ReponseObject.Articles;
@@ -152,7 +152,7 @@
     {
         if (shouldFollow)
         {
-            var followResult = await MyConduitClient.FollowUser(ProfileModel.Username);
+            var followResult = await MyConduitService.FollowUser(ProfileModel.Username);
             if (followResult.Success)
             {
                 ProfileModel.Following = true;
@@ -160,7 +160,7 @@
         }
         else
         {
-            var unfollowResult = await MyConduitClient.UnfollowUser(ProfileModel.Username);
+            var unfollowResult = await MyConduitService.UnfollowUser(ProfileModel.Username);
             if (unfollowResult.Success)
             {
                 ProfileModel.Following = false;

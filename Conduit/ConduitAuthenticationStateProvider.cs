@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Blazored.LocalStorage;
@@ -13,7 +12,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 namespace Conduit
 {
     /// <summary>
-    /// 
+    /// Provides a custom version of GetAuthenticationStateAsync for <CascadingAuthenticationState> as well as utility
+    /// methods for setup and teardown of identity claims
     /// </summary>
     /// <remarks>
     ///  Based on the work at 
@@ -66,7 +66,7 @@ namespace Conduit
         /// <summary>
         ///  Constructs a new ClaimsPrincipal and corresponding AuthenticationState. Invokes
         ///  NotifyAuthenticationStateChanged() method which fires an event that will update any 
-        ///  CascadingAuthenticationState components with the new AuthenticationState.
+        ///  <CascadingAuthenticationState> components with the new AuthenticationState.
         /// </summary>
         public void MarkUserAsAuthenticated(string username, string profileImage)
         {
@@ -82,7 +82,7 @@ namespace Conduit
             NotifyAuthenticationStateChanged(authState);
         }
 
-        private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
+        private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
         {
             var claims = new List<Claim>();
             var payload = jwt.Split('.')[1];
@@ -115,7 +115,7 @@ namespace Conduit
             return claims;
         }
 
-        private byte[] ParseBase64WithoutPadding(string base64)
+        private static byte[] ParseBase64WithoutPadding(string base64)
         {
             switch (base64.Length % 4)
             {

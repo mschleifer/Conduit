@@ -1,5 +1,4 @@
-﻿@using Conduit.Models
-@inject ConduitClient MyConduitClient
+﻿@inject ConduitService MyConduitService
 
 <div class="article-meta">
     <a href="/@@@ArticleModel.Author.UserName">
@@ -58,7 +57,7 @@
     {
         if (shouldFollow)
         {
-            var followResult = await MyConduitClient.FollowUser(ArticleModel.Author.UserName);
+            var followResult = await MyConduitService.FollowUser(ArticleModel.Author.UserName);
             if (followResult.Success)
             {
                 ArticleModel.Author.Following = true;
@@ -68,7 +67,7 @@
         }
         else
         {
-            var unfollowResult = await MyConduitClient.UnfollowUser(ArticleModel.Author.UserName);
+            var unfollowResult = await MyConduitService.UnfollowUser(ArticleModel.Author.UserName);
             if (unfollowResult.Success)
             {
                 ArticleModel.Author.Following = false;
@@ -82,7 +81,7 @@
     {
         if (shouldFavorite)
         {
-            var favoriteResult = await MyConduitClient.FavoriteArticle(articleSlug);
+            var favoriteResult = await MyConduitService.FavoriteArticle(articleSlug);
             if (favoriteResult.Success)
             {
                 ArticleModel = favoriteResult.ReponseObject;
@@ -92,7 +91,7 @@
         }
         else
         {
-            var unfavoriteResult = await MyConduitClient.UnfavoriteArticle(articleSlug);
+            var unfavoriteResult = await MyConduitService.UnfavoriteArticle(articleSlug);
             if (unfavoriteResult.Success)
             {
                 ArticleModel = unfavoriteResult.ReponseObject;

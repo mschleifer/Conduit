@@ -1,6 +1,6 @@
 ﻿@page "/Article/{articleSlug}"
-@using Conduit.Models
-@inject ConduitClient MyConduitClient
+
+@inject ConduitService MyConduitService
 @inject NavigationManager MyNavigationManager
 
 <div class="article-page">
@@ -112,16 +112,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var articleResult = await MyConduitClient.GetArticle(ArticleSlug);
+        var articleResult = await MyConduitService.GetArticle(ArticleSlug);
 
         if (articleResult.Success)
         {
             ArticleModel = articleResult.ReponseObject;
         }
 
-        CurrentUser = await MyConduitClient.GetCurrentUser();
+        CurrentUser = await MyConduitService.GetCurrentUser();
 
-        var commentsResult = await MyConduitClient.GetComments(ArticleSlug);
+        var commentsResult = await MyConduitService.GetComments(ArticleSlug);
 
         if (commentsResult.Success)
         {
@@ -145,7 +145,7 @@
 
     private async Task HandleOnArticleDelete(string slug)
     {
-        var deleteResult = await MyConduitClient.DeleteArticle(slug);
+        var deleteResult = await MyConduitService.DeleteArticle(slug);
 
         if (deleteResult.Success)
         {
@@ -156,7 +156,7 @@
 
     private async Task HandleOnCommentDelete(int commentId)
     {
-        var deleteResult = await MyConduitClient.DeleteComment(ArticleSlug, commentId);
+        var deleteResult = await MyConduitService.DeleteComment(ArticleSlug, commentId);
 
         if (deleteResult.Success)
         {
@@ -171,7 +171,7 @@
 
         IsSubmitting = true;
 
-        var postResult = await MyConduitClient.PostComment(ArticleModel.Slug, NewCommentModel);
+        var postResult = await MyConduitService.PostComment(ArticleModel.Slug, NewCommentModel);
 
         IsSubmitting = false;
 

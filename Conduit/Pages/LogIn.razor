@@ -1,5 +1,6 @@
 ﻿@page "/Login"
-@inject PublicClient MyClient
+
+@inject AuthService MyAuthService
 @inject NavigationManager MyNavigationManager
 
 <div class="auth-page">
@@ -47,12 +48,14 @@
 
         IsSubmitting = true;
 
-        var loginResult = await MyClient.Login(UserLoginModel);
+        var loginResult = await MyAuthService.LogUserIn(UserLoginModel);
 
         IsSubmitting = false;
 
         if (loginResult.Success)
         {
+            // Set the app up to make use of the returned JWT
+            await MyAuthService.SetupUserIdentity(loginResult.ReponseObject);
             MyNavigationManager.NavigateTo($"/");
         }
         else if(loginResult.Errors?.Any() ?? false)

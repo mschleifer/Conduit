@@ -1,4 +1,4 @@
-﻿@inject ConduitClient MyConduitClient
+﻿@inject ConduitService MyConduitService
 
 <div class="article-preview">
     <div class="article-meta">
@@ -29,13 +29,13 @@
 
 @code {
     [Parameter]
-    public Conduit.Models.Article ArticleModel { get; set; }
+    public Article ArticleModel { get; set; }
 
     async Task ToggleFavoriteArticle(bool shouldFavorite, string articleSlug)
     {
         if (shouldFavorite)
         {
-            var favoriteResult = await MyConduitClient.FavoriteArticle(articleSlug);
+            var favoriteResult = await MyConduitService.FavoriteArticle(articleSlug);
             if (favoriteResult.Success)
             {
                 ArticleModel = favoriteResult.ReponseObject;
@@ -43,7 +43,7 @@
         }
         else
         {
-            var unfavoriteResult = await MyConduitClient.UnfavoriteArticle(articleSlug);
+            var unfavoriteResult = await MyConduitService.UnfavoriteArticle(articleSlug);
             if (unfavoriteResult.Success)
             {
                 ArticleModel = unfavoriteResult.ReponseObject;

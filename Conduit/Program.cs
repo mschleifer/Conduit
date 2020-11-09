@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Conduit.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,15 +19,11 @@ namespace Conduit
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddScoped<AuthenticationStateProvider, ConduitAuthenticationStateProvider>();
-            builder.Services.AddScoped<AuthService, AuthService>();
             builder.Services.AddScoped<ConduitAuthorizationHandler, ConduitAuthorizationHandler>();
 
-
-            builder.Services.AddHttpClient<ConduitClient>(client => client.BaseAddress = new Uri("https://conduit.productionready.io/"))
+            builder.Services.AddHttpClient<ConduitService>(client => client.BaseAddress = new Uri("https://conduit.productionready.io/"))
                             .AddHttpMessageHandler<ConduitAuthorizationHandler>();
-            builder.Services.AddHttpClient<PublicClient>(client => client.BaseAddress = new Uri("https://conduit.productionready.io/"));
-
-            //builder.Services.AddScoped<OrderState>();
+            builder.Services.AddHttpClient<AuthService>(client => client.BaseAddress = new Uri("https://conduit.productionready.io/"));
 
             await builder.Build().RunAsync();
         }

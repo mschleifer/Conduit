@@ -1,6 +1,6 @@
 ﻿@page "/"
-@inject PublicClient MyPublicClient
-@inject ConduitClient MyConduitClient
+
+@inject ConduitService MyConduitService
 
 <div class="home-page">
 
@@ -73,7 +73,7 @@
     [CascadingParameter]
     private Task<AuthenticationState> AuthStateTask { get; set; }
 
-    private List<Conduit.Models.Article> ArticleList;
+    private List<Article> ArticleList;
     private int TotalArticleCount { get; set; }
     private int CurrentPageIndex { get; set; }
     private List<string> PopularTags;
@@ -86,7 +86,7 @@
 
         await ToggleFeed(FeedType);
 
-        var tagsResult = await MyPublicClient.GetTags();
+        var tagsResult = await MyConduitService.GetTags();
         if (tagsResult.Success)
         {
             PopularTags = tagsResult.ReponseObject;
@@ -108,15 +108,15 @@
 
         if (FeedType == Enums.FeedType.Personal)
         {
-            articleResult = await MyConduitClient.GetFeed(limit: 10, offset: pageIndex * 10);
+            articleResult = await MyConduitService.GetFeed(limit: 10, offset: pageIndex * 10);
         }
         else if (FeedType == Enums.FeedType.Global)
         {
-            articleResult = await MyConduitClient.GetArticles(limit: 10, offset: pageIndex * 10);
+            articleResult = await MyConduitService.GetArticles(limit: 10, offset: pageIndex * 10);
         }
         else if (FeedType == Enums.FeedType.Tag)
         {
-            articleResult = await MyConduitClient.GetArticles(limit: 10, offset: pageIndex * 10, tag: SelectedTag);
+            articleResult = await MyConduitService.GetArticles(limit: 10, offset: pageIndex * 10, tag: SelectedTag);
         }
 
         if (articleResult.Success)

@@ -1,66 +1,33 @@
 ﻿using Blazored.LocalStorage;
 using Conduit.Models;
 using Microsoft.AspNetCore.Components.Authorization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web;
 
-namespace Conduit
+namespace Conduit.Services
 {
     /// <summary>
-    /// For requests that do not require authentication
+    /// Handles calls to Login and Register API endpoints as well as set up and tear down of local storage items
     /// </summary>
-    public class PublicClient
+    /// <remarks>
+    /// In conjunction with ConduitAuthenticationStateProvider see 
+    /// https://chrissainty.com/securing-your-blazor-apps-authentication-with-clientside-blazor-using-webapi-aspnet-core-identity/
+    /// </remarks>
+    public class AuthService
     {
         private readonly HttpClient _httpClient;
-        private readonly AuthService _authenticationService;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
         private readonly ILocalStorageService _localStorage;
 
-        public PublicClient(HttpClient httpClient,
-                           AuthService authenticationService,
+        public AuthService(HttpClient httpClient,
+                           AuthenticationStateProvider authenticationStateProvider,
                            ILocalStorageService localStorage)
         {
             _httpClient = httpClient;
-            _authenticationService = authenticationService;
+            _authenticationStateProvider = authenticationStateProvider;
             _localStorage = localStorage;
-        }
-
-        //Others
-        // 401 - unauth
-        // 403 - forbidden
-        // 404 - not found
-        // 500 - internal error (undefined in documentation, but expect)
-
-        public async Task<ConduitApiResponse<List<string>>> GetTags()
-        {
-            var response = await _httpClient.GetAsync("api/tags");
-            var content = await response.Content.ReadAsStringAsync();
-
-            ConduitApiResponse<List<string>> result;
-
-            if (!response.IsSuccessStatusCode)
-            {
-                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
-                result = JsonSerializer.Deserialize<ConduitApiResponse<List<string>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                result.Success = false;
-
-                return result;
-            }
-
-            // If successful, deserialize the response into a Profile object
-            // Ideally, we'd just use JsonSerializer.Deserialize on the reponse, but that doesn't work with our models, 
-            // so the JsonExtensions method below parses the response for us
-            var profileObject = JsonExtensions.SearchJsonRoot<List<string>>(content, "tags");
-            result = new ConduitApiResponse<List<string>> { Success = true, ReponseObject = profileObject };
-
-            return result;
         }
 
         public async Task<ConduitApiResponse<User>> RegisterUser(Register registrationInfo)
@@ -88,13 +55,10 @@ namespace Conduit
             var userObject = JsonExtensions.SearchJsonRoot<User>(content, "user");
             registerResult = new ConduitApiResponse<User> { Success = true, ReponseObject = userObject };
 
-            // Set the app up to make use of the returned JWT
-            await _authenticationService.LogUserIn(registerResult.ReponseObject);
-
             return registerResult;
         }
 
-        public async Task<ConduitApiResponse<User>> Login(Login loginModel)
+        public async Task<ConduitApiResponse<User>> LogUserIn(Login loginModel)
         {
             // Conduit API expects a specific JSON format, so wrap the login data before serializing
             var dataWrapper = new { User = loginModel };
@@ -117,12 +81,27 @@ namespace Conduit
             // Ideally, we'd just use JsonSerializer.Deserialize on the reponse, but that doesn't work with our models, 
             // so the JsonExtensions method below parses the response for us
             var userObject = JsonExtensions.SearchJsonRoot<User>(content, "user");
-            loginResult = new ConduitApiResponse<User> { Success = true, ReponseObject = userObject };
-
-            // Set the app up to make use of the returned JWT
-            await _authenticationService.LogUserIn(loginResult.ReponseObject);
+            loginResult = new ConduitApiResponse<User> { Success = true, ReponseObject = userObject };            
 
             return loginResult;
+        }
+
+        /// <summary>
+        /// Add the User's token (JWT) to local storage, mark the user authenticated with the auth state provider, and 
+        /// add the bearer header on our default HttpClient so that the JWT is sent with all requests.
+        /// </summary>
+        public async Task SetupUserIdentity(User userModel)
+        {
+            await _localStorage.SetItemAsync("authToken", userModel.Token);
+            await _localStorage.SetItemAsync("profileImage", userModel.Image);
+            ((ConduitAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(userModel.Username, userModel.Image);
+        }
+
+        public async Task LogUserOut()
+        {
+            await _localStorage.RemoveItemAsync("authToken");
+            await _localStorage.RemoveItemAsync("profileImage");
+            ((ConduitAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
         }
     }
 }

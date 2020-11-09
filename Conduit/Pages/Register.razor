@@ -1,5 +1,5 @@
 ﻿@page "/Register"
-@inject PublicClient MyClient
+
 @inject NavigationManager MyNavigationManager
 @inject AuthService MyAuthService
 
@@ -52,13 +52,14 @@
 
         IsSubmitting = true;
 
-        var registerResult = await MyClient.RegisterUser(UserRegisterModel);
+        var registerResult = await MyAuthService.RegisterUser(UserRegisterModel);
 
         IsSubmitting = false;
 
         if (registerResult.Success)
         {
-            await MyAuthService.LogUserIn(registerResult.ReponseObject);
+            // Set the app up to make use of the returned JWT
+            await MyAuthService.SetupUserIdentity(registerResult.ReponseObject);
             MyNavigationManager.NavigateTo($"/");
         }
         else if (registerResult.Errors?.Any() ?? false)

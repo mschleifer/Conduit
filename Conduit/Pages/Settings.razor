@@ -1,8 +1,9 @@
 ﻿@page "/Settings"
 @attribute [Authorize]
+
 @inject AuthService MyAuthService
 @inject NavigationManager MyNavigationManager
-@inject ConduitClient MyHttpClient
+@inject ConduitService MyConduitService
 
 <div class="settings-page">
     <div class="container page">
@@ -51,13 +52,13 @@
 @code {
 
     bool IsSubmitting = false;
-    Conduit.Models.Settings SettingsInfo = new Models.Settings();
+    Models.Settings SettingsInfo = new Models.Settings();
     private ServerValidator ServerValidator;
 
 
     protected override async Task OnInitializedAsync()
     {
-        var userInfo = await MyHttpClient.GetCurrentUser();
+        var userInfo = await MyConduitService.GetCurrentUser();
         SettingsInfo.Image = userInfo.Image;
         SettingsInfo.Username = userInfo.Username;
         SettingsInfo.Bio = userInfo.Bio;
@@ -77,15 +78,14 @@
 
         IsSubmitting = true;
 
-        var updateResult = await MyHttpClient.UpdateUser(SettingsInfo);
+        var updateResult = await MyConduitService.UpdateUser(SettingsInfo);
 
         IsSubmitting = false;
 
         if (updateResult.Success)
         {
-            // TODO: Test this
-            // Log the user in with the new information so that their username and image claims are updated
-            await MyAuthService.LogUserIn(updateResult.ReponseObject);
+            // Update app identity for user with new information so that their username and image claims are updated
+            await MyAuthService.SetupUserIdentity(updateResult.ReponseObject);
             MyNavigationManager.NavigateTo($"/");
         }
         else if (updateResult.Errors?.Any() ?? false)

@@ -6,13 +6,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace Conduit
+namespace Conduit.Services
 {
-    public class ConduitClient
+    public class ConduitService
     {
         private readonly HttpClient _httpClient;
 
-        public ConduitClient(HttpClient httpClient)
+        public ConduitService(HttpClient httpClient)
         {
             this._httpClient = httpClient;
         }
@@ -210,6 +210,31 @@ namespace Conduit
             // If successful, deserialize the response into a ArticleList response object
             var articleListObject = JsonSerializer.Deserialize<ArticleList>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             result = new ConduitApiResponse<ArticleList> { Success = true, ReponseObject = articleListObject };
+
+            return result;
+        }
+
+        public async Task<ConduitApiResponse<List<string>>> GetTags()
+        {
+            var response = await _httpClient.GetAsync("api/tags");
+            var content = await response.Content.ReadAsStringAsync();
+
+            ConduitApiResponse<List<string>> result;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // If the call fails, deserialize the response into the Errors field of ConduitApiResponse
+                result = JsonSerializer.Deserialize<ConduitApiResponse<List<string>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                result.Success = false;
+
+                return result;
+            }
+
+            // If successful, deserialize the response into a Profile object
+            // Ideally, we'd just use JsonSerializer.Deserialize on the reponse, but that doesn't work with our models, 
+            // so the JsonExtensions method below parses the response for us
+            var profileObject = JsonExtensions.SearchJsonRoot<List<string>>(content, "tags");
+            result = new ConduitApiResponse<List<string>> { Success = true, ReponseObject = profileObject };
 
             return result;
         }

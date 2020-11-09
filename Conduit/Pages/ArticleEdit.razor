@@ -1,7 +1,7 @@
 ﻿@page "/Editor/"
 @page "/Editor/{articleSlug}"
-@using Conduit.Models
-@inject ConduitClient MyConduitClient
+
+@inject ConduitService MyConduitService
 @inject NavigationManager MyNavigationManager
 
 <div class="editor-page">
@@ -68,7 +68,7 @@
     {
         if (!string.IsNullOrEmpty(ArticleSlug))
         {
-            var articleResult = await MyConduitClient.GetArticle(ArticleSlug);
+            var articleResult = await MyConduitService.GetArticle(ArticleSlug);
 
             if (articleResult.Success)
             {
@@ -102,8 +102,8 @@
 
         // Call the create endpoint if this is a new article, update endpoint if it already exists
         var postResult = string.IsNullOrEmpty(ArticleModel.Slug) ?
-                         await MyConduitClient.CreateArticle(ArticleModel) :
-                         await MyConduitClient.UpdateArticle(ArticleModel);
+                         await MyConduitService.CreateArticle(ArticleModel) :
+                         await MyConduitService.UpdateArticle(ArticleModel);
 
         if (postResult.Success)
         {
