@@ -2,9 +2,9 @@
 
 <div class="article-preview">
     <div class="article-meta">
-        <a href="/@@@ArticleModel.Author.UserName"><img src="@ArticleModel.Author.Image" /></a>
+        <a href="@@@ArticleModel.Author.UserName"><img src="@ArticleModel.Author.Image" /></a>
         <div class="info">
-            <a href="/@@@ArticleModel.Author.UserName" class="author">@ArticleModel.Author.UserName</a>
+            <a href="@@@ArticleModel.Author.UserName" class="author">@ArticleModel.Author.UserName</a>
             <span class="date">@ArticleModel.CreatedAt.ToString("MMMM d,yyyy")</span>
         </div>
         <button class="btn @(ArticleModel.Favorited ? "btn-primary" : "btn-outline-primary") btn-sm pull-xs-right"
@@ -12,7 +12,7 @@
             <i class="ion-heart"></i> @ArticleModel.FavoritesCount
         </button>
     </div>
-    <a href="/article/@ArticleModel.Slug" class="preview-link">
+    <a href="article/@ArticleModel.Slug" class="preview-link">
         <h1>@ArticleModel.Title</h1>
         <p>@ArticleModel.Description</p>
         <span>Read more...</span>
