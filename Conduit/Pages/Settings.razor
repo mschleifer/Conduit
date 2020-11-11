@@ -69,7 +69,7 @@
     {
 
         await MyAuthService.LogUserOut();
-        MyNavigationManager.NavigateTo($"/");
+        MyNavigationManager.NavigateTo($"");
     }
 
     async Task UpdateUserInfo()
@@ -86,7 +86,7 @@
         {
             // Update app identity for user with new information so that their username and image claims are updated
             await MyAuthService.SetupUserIdentity(updateResult.ReponseObject);
-            MyNavigationManager.NavigateTo($"/");
+            MyNavigationManager.NavigateTo($"");
         }
         else if (updateResult.Errors?.Any() ?? false)
         {

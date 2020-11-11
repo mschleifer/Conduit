@@ -22,7 +22,7 @@
                         </NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="@($"/@{context.User.Identity.Name}")">
+                        <NavLink class="nav-link" href="@($"@{context.User.Identity.Name}")">
                             <img class="user-pic" src="@(context.User.Claims.SingleOrDefault(x => x.Type == "ProfileImage")?.Value)">
                             &nbsp;@context.User.Identity.Name
                         </NavLink>

@@ -60,7 +60,7 @@
         {
             // Set the app up to make use of the returned JWT
             await MyAuthService.SetupUserIdentity(registerResult.ReponseObject);
-            MyNavigationManager.NavigateTo($"/");
+            MyNavigationManager.NavigateTo("");
         }
         else if (registerResult.Errors?.Any() ?? false)
         {

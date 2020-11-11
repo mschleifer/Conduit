@@ -107,7 +107,7 @@
 
         if (postResult.Success)
         {
-            MyNavigationManager.NavigateTo($"/article/{postResult.ReponseObject.Slug}");
+            MyNavigationManager.NavigateTo($"article/{postResult.ReponseObject.Slug}");
         }
         else if (postResult.Errors?.Any() ?? false)
         {
