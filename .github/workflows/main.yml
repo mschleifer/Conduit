@@ -1,0 +1,40 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Deploy to GitHub Pages
+
+# Controls when the action will run. Triggers the workflow on push request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "deploy-to-github-pages"
+  deploy-to-github-pages:
+    # The type of runner that the job will run on
+    # Use the latest ubuntu image to run our steps
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # sets up .NET 5 SDK on the underlying ubuntu machine
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: 5
+
+      # publishes Blazor project to the release folder on the underlying machine
+      - name: Publish .NET Project
+        run: dotnet publish Conduit.csproj -c Release -o release --nologo
+
+      # commits the files from release/wwwroot on the machine to our gh-pages branch
+      - name: Commit wwwroot to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: release/wwwroot
